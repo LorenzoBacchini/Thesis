@@ -18,3 +18,5 @@ continuo sviluppo applicazione di test
 
 29/06/24
 continuo sviluppo applicazione di test
+- test su opencv
+- sviluppo prima app che riconosce qr code
