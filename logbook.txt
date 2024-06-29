@@ -1,0 +1,20 @@
+27/06/24
+Inizio i lavori per la tesi di laurea triennale di Ingegneria e scienze informatiche
+- creazione della repo
+- consultazione esperienze e esempi di tesi triennali
+- inizio studio dei concetti di visione artificiale applicati alla jvm 
+- creazione progetto di test per la visione artificiale
+- scoperta degli ArUco markers
+- creazione applicazione java base che visualizza ciò che la webcam vede
+
+fonti:
+https://www.youtube.com/watch?v=iReJXUeLb20
+https://docs.opencv.org/4.x/d5/dae/tutorial_aruco_detection.html
+https://github.com/bytedeco/javacv
+
+28/06/24
+continuo sviluppo applicazione di test
+- studio libreria specifica di visione artificiale per java Boofcv
+
+29/06/24
+continuo sviluppo applicazione di test
