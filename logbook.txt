@@ -20,3 +20,4 @@ continuo sviluppo applicazione di test
 continuo sviluppo applicazione di test
 - test su opencv
 - sviluppo prima app che riconosce qr code
+- sviluppo prima app che riconosce aruco markers (non testata)
