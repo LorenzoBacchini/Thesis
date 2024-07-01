@@ -21,3 +21,14 @@ continuo sviluppo applicazione di test
 - test su opencv
 - sviluppo prima app che riconosce qr code
 - sviluppo prima app che riconosce aruco markers (non testata)
+
+01/07/24
+- test applicazione sviluppata in data 29/06 e successivi miglioramenti
+- utilizzo di marker aruco stampati, dimensioni 4x4(50, 100, 250, 1000)
+- studio pagina "Detection of aruco markers" di opencv
+- studio concetto di posa della camera
+- inizio calibrazione camera con aruco board
+
+fonti:
+https://chev.me/arucogen/
+https://docs.opencv.org/4.x/da/d13/tutorial_aruco_calibration.html
