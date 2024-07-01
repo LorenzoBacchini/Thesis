@@ -83,7 +83,7 @@ public class App {
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
         
         //Aruco tag Detection
-        Dictionary dictionary = opencv_aruco.getPredefinedDictionary(opencv_aruco.DICT_4X4_1000);
+        Dictionary dictionary = opencv_aruco.getPredefinedDictionary(opencv_aruco.DICT_4X4_50);
 
         while (canvas.isVisible() && (grabber.grab()) != null) {
             Frame frame = grabber.grab();
@@ -91,7 +91,6 @@ public class App {
 
             // Lista di vettori di punti per i marker rilevati
             MatVector markerCorners = new MatVector();
-            //Point2fVectorVector markerCorners = new Point2fVectorVector();
             Mat markerIds = new Mat();
 
             opencv_aruco.detectMarkers(mat, dictionary, markerCorners, markerIds);
@@ -102,19 +101,6 @@ public class App {
             }
 
             canvas.showImage(converterToMat.convert(mat));
-          
-            /*
-            if (bytePointer!=null && !bytePointer.toString().isEmpty()) {
-                String decodedText = bytePointer.getString();
-                System.out.println("QR Code detected: " + decodedText);
-                for (int i = 0; i < points.size().height(); i++) {
-                    Rect rect = new Rect(points.ptr(i));
-                    opencv_imgproc.rectangle(mat, rect, new Scalar(0, 255, 0, 0));
-                }
-            }
-          
-            canvas.showImage(grabber.grab());
-            */
         }
         grabber.stop();
         grabber.close();
