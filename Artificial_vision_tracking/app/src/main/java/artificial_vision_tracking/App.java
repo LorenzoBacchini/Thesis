@@ -68,29 +68,22 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.MatVector;
-import org.bytedeco.opencv.opencv_core.Point2fVectorVector;
-import org.bytedeco.opencv.opencv_core.Rect;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.global.opencv_aruco;
-import org.bytedeco.opencv.global.opencv_imgproc;
-import org.bytedeco.opencv.opencv_aruco.Board;
 import org.bytedeco.javacv.Frame;
-import org.bytedeco.opencv.opencv_objdetect.QRCodeDetector;
-import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.opencv.opencv_aruco.Dictionary;
 
 
 public class App {
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException {
-        OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+        OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(1);
         grabber.start();
-        Board board = new Board();
         CanvasFrame canvas = new CanvasFrame("Webcam");
         canvas.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
         
         //Aruco tag Detection
-        Dictionary dictionary = opencv_aruco.getPredefinedDictionary(opencv_aruco.DICT_6X6_250);
+        Dictionary dictionary = opencv_aruco.getPredefinedDictionary(opencv_aruco.DICT_4X4_1000);
 
         while (canvas.isVisible() && (grabber.grab()) != null) {
             Frame frame = grabber.grab();
@@ -126,6 +119,7 @@ public class App {
         grabber.stop();
         grabber.close();
         dictionary.close();
+        converterToMat.close();
         canvas.dispose();
     }
 }
