@@ -9,7 +9,11 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'java'
 }
+
+group 'dev.test'
+version '1.0.0'
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -29,6 +33,16 @@ dependencies {
 application {
     // Define the main class for the application.
     mainClass = 'artificial_vision_tracking.App'
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveBaseName = "${rootProject.name}"
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
 
 tasks.named('test') {

@@ -28,7 +28,7 @@ import java.util.List;
 
 public class MarkersDetector {
     public void detect() throws FrameGrabber.Exception, InterruptedException {
-        OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(1);
+        OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
         
         grabber.start();
         CanvasFrame canvas = new CanvasFrame("Webcam");
