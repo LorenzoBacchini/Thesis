@@ -32,3 +32,13 @@ continuo sviluppo applicazione di test
 fonti:
 https://chev.me/arucogen/
 https://docs.opencv.org/4.x/da/d13/tutorial_aruco_calibration.html
+
+02/07/24
+- continuo calibrazione e posa camera
+- download librerie opencv
+- ho inserito le librerie di opencv all'interno della cartella bin del jdk
+- tutto questo per poter utilizzare una classe completa per la calibrazione trovata su gituhub
+- divisione funzioni in più classi
+
+fonti:
+https://sourceforge.net/projects/opencvlibrary/files/4.5.3/
