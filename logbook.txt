@@ -39,6 +39,7 @@ https://docs.opencv.org/4.x/da/d13/tutorial_aruco_calibration.html
 - ho inserito le librerie di opencv all'interno della cartella bin del jdk
 - tutto questo per poter utilizzare una classe completa per la calibrazione trovata su gituhub
 - divisione funzioni in più classi
+- pubblicazione prima release su github e modifica repo pubblica
 
 fonti:
 https://sourceforge.net/projects/opencvlibrary/files/4.5.3/
