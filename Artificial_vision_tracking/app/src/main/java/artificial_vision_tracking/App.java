@@ -62,50 +62,115 @@ public class App {
  */
 package artificial_vision_tracking;
 
-import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FrameGrabber;
-import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameGrabber;
-import org.bytedeco.opencv.opencv_core.Mat;
-import org.bytedeco.opencv.opencv_core.MatVector;
-import org.bytedeco.opencv.opencv_core.Scalar;
-import org.bytedeco.opencv.global.opencv_aruco;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.opencv.opencv_aruco.Dictionary;
+import org.opencv.core.Core;
 
 
 public class App {
+    static {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    }
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException {
+        MarkersDetector md = new MarkersDetector();
+        md.detect();
+        //QrDetector qrDetector = new QrDetector();
+        //qrDetector.detect();
+    
+    /*
+    public static void calibration() throws FrameGrabber.Exception {
+        // Parametri per la creazione della GridBoard
+        int markersX = 1; // Numero di marker sull'asse X
+        int markersY = 2; // Numero di marker sull'asse Y
+        float markerLength = 0.075f; // Lunghezza del marker (in metri)
+        float markerSeparation = 0.095f; // Distanza tra i marker (in metri)
+
+        Dictionary dictionary = opencv_aruco.getPredefinedDictionary(opencv_aruco.DICT_4X4_50);
+        Size gridSize = new Size(markersX, markersY);
+        GridBoard gridBoard = GridBoard.create(markersX, markersY, markerLength, markerSeparation, dictionary);
+        
+        DetectorParameters detectorParams = DetectorParameters.create();
+
+        // Collected frames for calibration
+        MatVector allMarkerCorners = new MatVector();
+        Mat allMarkerIds = new Mat();
+        Size imageSize = new Size();
+
         OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(1);
         grabber.start();
-        CanvasFrame canvas = new CanvasFrame("Webcam");
-        canvas.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
-        
-        //Aruco tag Detection
-        Dictionary dictionary = opencv_aruco.getPredefinedDictionary(opencv_aruco.DICT_4X4_50);
 
-        while (canvas.isVisible() && (grabber.grab()) != null) {
-            Frame frame = grabber.grab();
-            Mat mat = converterToMat.convert(frame);
-
-            // Lista di vettori di punti per i marker rilevati
-            MatVector markerCorners = new MatVector();
-            Mat markerIds = new Mat();
-
-            opencv_aruco.detectMarkers(mat, dictionary, markerCorners, markerIds);
-
-            // Se sono stati rilevati marker, disegna i contorni
-            if (markerIds.size().height() > 0) {
-                opencv_aruco.drawDetectedMarkers(mat, markerCorners, markerIds, new Scalar(0, 255, 0, 0));
-            }
-
-            canvas.showImage(converterToMat.convert(mat));
+        VideoCapture inputVideo = new VideoCapture(1);  // 0 indica la webcam, puoi cambiare il numero per usare un'altra videocamera
+        if (!inputVideo.isOpened()) {
+            System.out.println("Errore nell'apertura del video di input");
+            return;
         }
-        grabber.stop();
-        grabber.close();
-        dictionary.close();
-        converterToMat.close();
-        canvas.dispose();
+
+        Mat image = new Mat();
+        Mat imageCopy = new Mat();
+
+        while(inputVideo.read(image)) {
+            imageCopy = image.clone();
+            
+            MatVector markerCorners = new MatVector();
+            Mat markerIds = new Mat();  // IDs dei marker
+            
+            // Detect markers
+            opencv_aruco.detectMarkers(image, dictionary, markerCorners, markerIds);
+        }   
+        
+        
+
+        
+
+
+        Mat cameraMatrix = new Mat();
+        Mat distCoeffs = new Mat();
+
+        int calibrationFlags = Calib3d.CALIB_FIX_ASPECT_RATIO;
+        double aspectRatio = 1.0;
+
+        if ((calibrationFlags & Calib3d.CALIB_FIX_ASPECT_RATIO) != 0) {
+            cameraMatrix = Mat.eye(3, 3, org.bytedeco.opencv.global.opencv_core.CV_64F).asMat();
+            int index = 0 * cameraMatrix.cols() + 0;
+            cameraMatrix.ptr(index).put(((byte)aspectRatio));
+        }
+
+        // Prepare data for calibration
+        List<Point3fVector> objectPoints = new ArrayList<>();
+        List<Point2fVector> imagePoints = new ArrayList<>();
+        List<Mat> processedObjectPoints = new ArrayList<>();
+        List<Mat> processedImagePoints = new ArrayList<>();
+
+        long nFrames = allMarkerCorners.size();
+        if (allMarkerIds.sizeof() < 10) {
+            System.out.println("Not enough captures for calibration");
+            return;
+        }
+
+        for (int frame = 0; frame < nFrames; frame++) {
+            Mat currentObjPoints = new Mat();
+            Mat currentImgPoints = new Mat();
+
+            opencv_aruco.getBoardObjectAndImagePoints(gridBoard, allMarkerCorners, allMarkerIds, currentObjPoints, currentImgPoints);
+
+            if (currentImgPoints.total() > 0 && currentObjPoints.total() > 0) {
+                processedImagePoints.add(new Mat(new MatVector(currentImgPoints)));
+                processedObjectPoints.add(new Mat(new MatVector(currentObjPoints)));
+            }
+        }
+
+        // Calibrate camera
+        opencv_aruco.calibrateCameraAruco(allMarkerCorners, null, null, gridBoard, imageSize, null, null)
+        double repError = Calib3d.calibrateCamera(
+                processedObjectPoints,
+                processedImagePoints,
+                imageSize,
+                cameraMatrix,
+                distCoeffs,
+                (List<Mat>)new ArrayList<Mat>(),                
+                (List<Mat>)new ArrayList<Mat>(),
+                Calib3d.CALIB_USE_INTRINSIC_GUESS | calibrationFlags
+        );
+    }*/
     }
 }
