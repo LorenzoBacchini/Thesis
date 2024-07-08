@@ -3,11 +3,14 @@
  */
 package artificial_vision_tracking;
 
+import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacv.FrameGrabber;
-import org.opencv.core.Core;
+import org.bytedeco.opencv.opencv_java;
+import org.opencv.core.CvType;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.aruco.Aruco;
 import org.opencv.aruco.GridBoard;
 import org.opencv.aruco.Dictionary;
@@ -18,107 +21,19 @@ import java.util.List;
 
 
 public class App {
-    static {
+    /*static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    }*/
+    static {
+        // Carica le librerie native di OpenCV
+        Loader.load(opencv_java.class);
     }
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException {
-        System.out.println("Hello, OpenCV");
-        calibration();
+        CameraCalibrator.calibration();
         MarkersDetector md = new MarkersDetector();
         md.detect();
         //QrDetector qrDetector = new QrDetector();
         //qrDetector.detect();
     
-    }
-
-    public static void calibration() {
-        // Parametri per la creazione della GridBoard
-        int markersX = 1; // Numero di marker sull'asse X
-        int markersY = 2; // Numero di marker sull'asse Y
-        float markerLength = 0.075f; // Lunghezza del marker (in metri)
-        float markerSeparation = 0.095f; // Distanza tra i marker (in metri)
-
-        Dictionary dictionary =  Aruco.getPredefinedDictionary(Aruco.DICT_4X4_50);
-        //Size gridSize = new Size(markersX, markersY);
-        GridBoard gridBoard = GridBoard.create(markersX, markersY, markerLength, markerSeparation, dictionary);
-        
-        //DetectorParameters detectorParams = DetectorParameters.create();
-
-        // Collected frames for calibration
-        List<Mat> allMarkerCorners = new ArrayList<>();
-        Mat allMarkerIds = new Mat();
-        Size imageSize = new Size();
-
-        VideoCapture inputVideo = new VideoCapture(1);  // 0 indica la webcam, puoi cambiare il numero per usare un'altra videocamera
-        if (!inputVideo.isOpened()) {
-            System.out.println("Errore nell'apertura del video di input");
-            return;
-        }
-
-        Mat image = new Mat();
-        //Mat imageCopy = new Mat();
-
-        while(inputVideo.read(image)) {
-            //imageCopy = image.clone();
-            
-            List<Mat> markerCorners = new ArrayList<>();
-            Mat markerIds = new Mat();  // IDs dei marker
-            
-            // Detect markers
-            Aruco.detectMarkers(image, dictionary, markerCorners, markerIds);
-        }   
-        
-        
-
-        
-
-
-        Mat cameraMatrix = new Mat();
-        Mat distCoeffs = new Mat();
-
-        int calibrationFlags = Calib3d.CALIB_FIX_ASPECT_RATIO;
-        double aspectRatio = 1.0;
-
-        if ((calibrationFlags & Calib3d.CALIB_FIX_ASPECT_RATIO) != 0) {
-            cameraMatrix = Mat.eye(3, 3, 6/*Core.CV_64F*/);
-            cameraMatrix.put(0, 0, aspectRatio);
-        }
-
-        // Prepare data for calibration
-        //List<MatOfPoint3f> objectPoints = new ArrayList<>();
-        //List<MatOfPoint2f> imagePoints = new ArrayList<>();
-        List<Mat> processedObjectPoints = new ArrayList<>();
-        List<Mat> processedImagePoints = new ArrayList<>();
-
-        long nFrames = allMarkerCorners.size();
-        /*if (allMarkerIds.sizeof() < 10) {
-            System.out.println("Not enough captures for calibration");
-            return;
-        }*/
-
-        for (int frame = 0; frame < nFrames; frame++) {
-            Mat currentObjPoints = new Mat();
-            Mat currentImgPoints = new Mat();
-
-            Aruco.getBoardObjectAndImagePoints(gridBoard, allMarkerCorners, allMarkerIds, currentObjPoints, currentImgPoints);
-
-            if (currentImgPoints.total() > 0 && currentObjPoints.total() > 0) {
-                processedImagePoints.add(currentImgPoints);
-                processedObjectPoints.add(currentObjPoints);
-            }
-        }
-
-        // Calibrate camera
-        double repError = Calib3d.calibrateCamera(
-                processedObjectPoints,
-                processedImagePoints,
-                imageSize,
-                cameraMatrix,
-                distCoeffs,
-                (List<Mat>)new ArrayList<Mat>(),                
-                (List<Mat>)new ArrayList<Mat>(),
-                calibrationFlags
-        );
-        System.out.println("Reprojection error: " + repError);
     }
 }

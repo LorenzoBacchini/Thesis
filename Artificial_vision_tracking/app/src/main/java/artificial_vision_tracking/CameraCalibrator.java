@@ -1,167 +1,122 @@
 package artificial_vision_tracking;
 
+import org.bytedeco.javacv.FrameGrabber;
+import org.opencv.aruco.Aruco;
+import org.opencv.aruco.Dictionary;
+import org.opencv.aruco.GridBoard;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfDouble;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.MatOfPoint3f;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoCapture;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CameraCalibrator {
-    private final Size mPatternSize = new Size(4, 11);
-    private final int mCornersSize = (int)(mPatternSize.width * mPatternSize.height);
-    private boolean mPatternWasFound = false;
-    private MatOfPoint2f mCorners = new MatOfPoint2f();
-    private List<Mat> mCornersBuffer = new ArrayList<Mat>();
-    private boolean mIsCalibrated = false;
+    public static List<Mat> calibration() throws FrameGrabber.Exception{
+        // Parametri per la creazione della GridBoard
+        int markersX = 2; // Numero di marker sull'asse X
+        int markersY = 2; // Numero di marker sull'asse Y
+        float markerLength = 0.07f; // Lunghezza del marker (in metri)
+        float markerSeparation = 0.105f; // Distanza tra i marker (in metri)
+        boolean refindStrategy = true;
 
-    private Mat mCameraMatrix = new Mat();
-    private Mat mDistortionCoefficients = new Mat();
-    private int mFlags;
-    private double mRms;
-    private double mSquareSize = 0.075;
-    private Size mImageSize;
+        List<List<Mat>> allMarkerCorners = new ArrayList<>();
+        List<Mat> allMarkerIds = new ArrayList<>();
+        Size imageSize = new Size();
 
-    public CameraCalibrator(int width, int height) {
-        mImageSize = new Size(width, height);
-        mFlags = Calib3d.CALIB_FIX_PRINCIPAL_POINT +
-                Calib3d.CALIB_ZERO_TANGENT_DIST +
-                Calib3d.CALIB_FIX_ASPECT_RATIO +
-                Calib3d.CALIB_FIX_K4 +
-                Calib3d.CALIB_FIX_K5;
-        Mat.eye(3, 3, CvType.CV_64FC1).copyTo(mCameraMatrix);
-        mCameraMatrix.put(0, 0, 1.0);
-        Mat.zeros(5, 1, CvType.CV_64FC1).copyTo(mDistortionCoefficients);
-        System.out.println("Instantiated new " + this.getClass());
-    }
+        Dictionary dictionary =  Aruco.getPredefinedDictionary(Aruco.DICT_4X4_50);
+        GridBoard gridBoard = GridBoard.create(markersX, markersY, markerLength, markerSeparation, dictionary);
 
-    public void processFrame(Mat grayFrame, Mat rgbaFrame) {
-        findPattern(grayFrame);
-        renderFrame(rgbaFrame);
-    }
-
-    public void calibrate() {
-        ArrayList<Mat> rvecs = new ArrayList<Mat>();
-        ArrayList<Mat> tvecs = new ArrayList<Mat>();
-        Mat reprojectionErrors = new Mat();
-        ArrayList<Mat> objectPoints = new ArrayList<Mat>();
-        objectPoints.add(Mat.zeros(mCornersSize, 1, CvType.CV_32FC3));
-        calcBoardCornerPositions(objectPoints.get(0));
-        for (int i = 1; i < mCornersBuffer.size(); i++) {
-            objectPoints.add(objectPoints.get(0));
+        // Collected frames for calibration
+        VideoCapture capture = new VideoCapture(1);
+        if (!capture.isOpened()) {
+            System.out.println("Errore: impossibile aprire la webcam.");
+            return null;
         }
+        
+        while (capture.grab()) {
+            Mat image = new Mat();
+            capture.retrieve(image);
 
-        Calib3d.calibrateCamera(objectPoints, mCornersBuffer, mImageSize,
-                mCameraMatrix, mDistortionCoefficients, rvecs, tvecs, mFlags);
+            Mat gray = new Mat();
+            Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
 
-        mIsCalibrated = Core.checkRange(mCameraMatrix)
-                && Core.checkRange(mDistortionCoefficients);
+            List<Mat> markerCorners = new ArrayList<>();
+            List<Mat> rejectedMarkers = new ArrayList<>();
+            Mat markerIds = new Mat();  // IDs dei marker
 
-        mRms = computeReprojectionErrors(objectPoints, rvecs, tvecs, reprojectionErrors);
-        System.out.println(String.format("Average re-projection error: %f", mRms));
-        System.out.println("Camera matrix: " + mCameraMatrix.dump());
-        System.out.println("Distortion coefficients: " + mDistortionCoefficients.dump());
-    }
+            // Detect markers
+            Aruco.detectMarkers(gray, dictionary, markerCorners, markerIds);
 
-    public void clearCorners() {
-        mCornersBuffer.clear();
-    }
+            // Refind strategy to detect more markers
+            if (refindStrategy) {
+                Aruco.refineDetectedMarkers(image, gridBoard, markerCorners, markerIds, rejectedMarkers);
+            } 
 
-    private void calcBoardCornerPositions(Mat corners) {
-        final int cn = 3;
-        float positions[] = new float[mCornersSize * cn];
+            // Verifica se sono stati rilevati marker
+            if (!markerIds.empty()) {
+                allMarkerCorners.add(markerCorners);
+                allMarkerIds.add(markerIds);
+                imageSize = gray.size();
+            }
 
-        for (int i = 0; i < mPatternSize.height; i++) {
-            for (int j = 0; j < mPatternSize.width * cn; j += cn) {
-                positions[(int) (i * mPatternSize.width * cn + j + 0)] =
-                        (2 * (j / cn) + i % 2) * (float) mSquareSize;
-                positions[(int) (i * mPatternSize.width * cn + j + 1)] =
-                        i * (float) mSquareSize;
-                positions[(int) (i * mPatternSize.width * cn + j + 2)] = 0;
+            // Interrompi dopo un certo numero di fotogrammi per l'esempio
+            if (allMarkerIds.size() >= 10) {
+                capture.release();
+                break;
             }
         }
-        corners.create(mCornersSize, 1, CvType.CV_32FC3);
-        corners.put(0, 0, positions);
-    }
 
-    private double computeReprojectionErrors(List<Mat> objectPoints,
-                                             List<Mat> rvecs, List<Mat> tvecs, Mat perViewErrors) {
-        MatOfPoint2f cornersProjected = new MatOfPoint2f();
-        double totalError = 0;
-        double error;
-        float viewErrors[] = new float[objectPoints.size()];
+        Mat cameraMatrix = new Mat();
+        Mat distCoeffs = new Mat();
 
-        MatOfDouble distortionCoefficients = new MatOfDouble(mDistortionCoefficients);
-        int totalPoints = 0;
-        for (int i = 0; i < objectPoints.size(); i++) {
-            MatOfPoint3f points = new MatOfPoint3f(objectPoints.get(i));
-            Calib3d.projectPoints(points, rvecs.get(i), tvecs.get(i),
-                    mCameraMatrix, distortionCoefficients, cornersProjected);
-            error = Core.norm(mCornersBuffer.get(i), cornersProjected, Core.NORM_L2);
+        int calibrationFlags = Calib3d.CALIB_FIX_ASPECT_RATIO;
+        double aspectRatio = 1.0;
 
-            int n = objectPoints.get(i).rows();
-            viewErrors[i] = (float) Math.sqrt(error * error / n);
-            totalError  += error * error;
-            totalPoints += n;
+        if ((calibrationFlags & Calib3d.CALIB_FIX_ASPECT_RATIO) != 0) {
+            cameraMatrix = Mat.eye(3, 3, CvType.CV_64F);
+            cameraMatrix.put(0, 0, aspectRatio);
         }
-        perViewErrors.create(objectPoints.size(), 1, CvType.CV_32FC1);
-        perViewErrors.put(0, 0, viewErrors);
 
-        return Math.sqrt(totalError / totalPoints);
-    }
+        // Prepare data for calibration
+        List<Mat> processedObjectPoints = new ArrayList<>();
+        List<Mat> processedImagePoints = new ArrayList<>();
 
-    private void findPattern(Mat grayFrame) {
+        long nFrames = allMarkerCorners.size();
 
-        mPatternWasFound = Calib3d.findCirclesGrid(grayFrame, mPatternSize,
-                mCorners, Calib3d.CALIB_CB_ASYMMETRIC_GRID);
-    }
+        for (int frame = 0; frame < nFrames; frame++) {
+            Mat currentObjPoints = new Mat();
+            Mat currentImgPoints = new Mat();
 
-    public void addCorners() {
-        if (mPatternWasFound) {
-            mCornersBuffer.add(mCorners.clone());
+            Aruco.getBoardObjectAndImagePoints(gridBoard, allMarkerCorners.get(frame), allMarkerIds.get(frame), currentObjPoints, currentImgPoints);
+
+            if (currentImgPoints.total() > 0 && currentObjPoints.total() > 0) {
+                processedImagePoints.add(currentImgPoints);
+                processedObjectPoints.add(currentObjPoints);
+            }
         }
-    }
 
-    private void drawPoints(Mat rgbaFrame) {
-        Calib3d.drawChessboardCorners(rgbaFrame, mPatternSize, mCorners, mPatternWasFound);
-    }
+        //System.out.println("\nProcessed image points: " + processedImagePoints + "\nProcessed object points: " + processedObjectPoints);
 
-    private void renderFrame(Mat rgbaFrame) {
-        drawPoints(rgbaFrame);
+        // Calibrate camera
+        double repError = Calib3d.calibrateCamera(
+                processedObjectPoints,
+                processedImagePoints,
+                imageSize,
+                cameraMatrix,
+                distCoeffs,
+                (List<Mat>)new ArrayList<Mat>(),                
+                (List<Mat>)new ArrayList<Mat>(),
+                calibrationFlags
+        );
 
-        Imgproc.putText(rgbaFrame, "Captured: " + mCornersBuffer.size(), new Point(rgbaFrame.cols() / 3 * 2, rgbaFrame.rows() * 0.1),
-                Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 255, 0));
-    }
+        System.out.println("\nCalibration error: " + repError);
+        System.out.println("\nCamera Matrix: " + cameraMatrix.dump());
+        System.out.println("\nDistortion Coefficients: " + distCoeffs.dump());
 
-    public Mat getCameraMatrix() {
-        return mCameraMatrix;
-    }
-
-    public Mat getDistortionCoefficients() {
-        return mDistortionCoefficients;
-    }
-
-    public int getCornersBufferSize() {
-        return mCornersBuffer.size();
-    }
-
-    public double getAvgReprojectionError() {
-        return mRms;
-    }
-
-    public boolean isCalibrated() {
-        return mIsCalibrated;
-    }
-
-    public void setCalibrated() {
-        mIsCalibrated = true;
+        return List.of(cameraMatrix, distCoeffs);
     }
 }
