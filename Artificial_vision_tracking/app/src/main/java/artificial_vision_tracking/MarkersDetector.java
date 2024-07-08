@@ -2,28 +2,15 @@ package artificial_vision_tracking;
 
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FrameGrabber;
-import org.bytedeco.javacv.FrameGrabber.Exception;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.MatVector;
-import org.bytedeco.opencv.opencv_core.Point2f;
-import org.bytedeco.opencv.opencv_core.Point2fVector;
-import org.bytedeco.opencv.opencv_core.Point2fVectorVector;
-import org.bytedeco.opencv.opencv_core.Point3fVector;
 import org.bytedeco.opencv.opencv_core.Scalar;
-import org.bytedeco.opencv.opencv_core.Size;
 import org.bytedeco.opencv.global.opencv_aruco;
 import org.bytedeco.javacv.Frame;
-import org.bytedeco.opencv.opencv_aruco.DetectorParameters;
 import org.bytedeco.opencv.opencv_aruco.Dictionary;
-import org.bytedeco.opencv.opencv_aruco.GridBoard;
-import org.bytedeco.opencv.opencv_videoio.VideoCapture;
-import org.opencv.calib3d.Calib3d;
-import org.opencv.core.Core;
 
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class MarkersDetector {
