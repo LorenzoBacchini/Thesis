@@ -43,3 +43,26 @@ https://docs.opencv.org/4.x/da/d13/tutorial_aruco_calibration.html
 
 fonti:
 https://sourceforge.net/projects/opencvlibrary/files/4.5.3/
+
+06/07/24
+- continuo calibrazione e posa camera
+- tentativo sostituzione libreria opencv453 con opencv9
+- importazione nuova libreria per utilizzare versione differente di opencv
+- grazie a chatgpt ho scoperto 
+    
+    static {
+        // Carica le librerie native di OpenCV
+        Loader.load(opencv_java.class);
+    }
+
+    con la quale sono riuscito a caricare senza problemi le librerie opencv
+
+- mi sono bloccato sulla funzione calibrateCamera che non riesce a ottenere un'immagine
+
+fonti:
+https://www.baeldung.com/java-opencv
+
+08/07/24
+- continuo calibrazione e posa camera
+- finito di implementare la calibrazione della camera
+- inizio sviluppo posa camera
