@@ -66,3 +66,16 @@ https://www.baeldung.com/java-opencv
 - continuo calibrazione e posa camera
 - finito di implementare la calibrazione della camera
 - inizio sviluppo posa camera
+
+09/07/24
+- continuo calibrazione e posa
+- sono riuscito a sviluppare un primo sistema di posa ma non funziona benissimo
+
+fonti: https://docs.opencv.org/4.x/d5/dae/tutorial_aruco_detection.html
+
+10/07/24
+- sto cercando di capire perchè la posa della camera non disegna
+    gli assi in maniera corretta
+- ho provato a calibrare la camera per più tempo ma non cambia niente
+    allora sto provando a calibrarla con più di 4 marker e quindi 
+    ho creato una classe con una funzione per generare pagine di marker
