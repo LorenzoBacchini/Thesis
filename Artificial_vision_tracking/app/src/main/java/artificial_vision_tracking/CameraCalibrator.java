@@ -15,19 +15,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CameraCalibrator {
-    public static List<Mat> calibration() throws FrameGrabber.Exception{
+    public static List<Mat> calibration(int markersX, int markersY, float markerLength, float markerSeparation, Dictionary dictionary) throws FrameGrabber.Exception{
         // Parametri per la creazione della GridBoard
-        int markersX = 2; // Numero di marker sull'asse X
-        int markersY = 2; // Numero di marker sull'asse Y
-        float markerLength = 0.07f; // Lunghezza del marker (in metri)
-        float markerSeparation = 0.105f; // Distanza tra i marker (in metri)
         boolean refindStrategy = true;
 
         List<List<Mat>> allMarkerCorners = new ArrayList<>();
         List<Mat> allMarkerIds = new ArrayList<>();
         Size imageSize = new Size();
 
-        Dictionary dictionary =  Aruco.getPredefinedDictionary(Aruco.DICT_4X4_50);
         GridBoard gridBoard = GridBoard.create(markersX, markersY, markerLength, markerSeparation, dictionary);
 
         // Collected frames for calibration
