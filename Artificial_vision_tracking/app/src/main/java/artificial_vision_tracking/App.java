@@ -17,7 +17,11 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
 import org.opencv.core.Point3;
+import org.opencv.highgui.HighGui;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
+import org.opencv.core.Scalar;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -34,11 +38,35 @@ public class App {
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException {
         final int markersX = 2; // Numero di marker sull'asse X
         final int markersY = 2; // Numero di marker sull'asse Y
-        final float markerLength = 0.07f; // Lunghezza del marker (in metri)
-        final float markerSeparation = 0.105f; // Distanza tra i marker (in metri)
-        final Dictionary dictionary = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_50);
+        final float markerLength = 0.02f; // Lunghezza del marker (in metri)
+        final float markerSeparation = 0.005f; // Distanza tra i marker (in metri)
+        final Dictionary dictionary = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_100);
 
-        List<Mat> cameraParam = CameraCalibrator.calibration(markersX, markersY, markerLength, markerSeparation, dictionary);
+        //GenerateMarkersSheet gms = new GenerateMarkersSheet();
+        //gms.generateMarkersSheet();
+        //List<Mat> cameraParam = CameraCalibrator.calibration(markersX, markersY, markerLength, markerSeparation, dictionary);
+        List<Mat> cameraParam = new ArrayList<>();
+        Mat cameraMatrix = new Mat();
+        Mat distCoeffs = new Mat();
+
+        cameraMatrix = new Mat(3, 3, org.opencv.core.CvType.CV_64F);
+        double[] data = {
+            1.32202219e+03, 0.00000000e+00, 9.22910848e+02,
+            0.00000000e+00, 1.32621322e+03, 5.78486997e+02,
+            0.00000000e+00, 0.00000000e+00, 1.00000000e+00
+        };
+        cameraMatrix.put(0, 0, data);
+
+        distCoeffs = new Mat(1, 5, org.opencv.core.CvType.CV_64F);
+        double[] data2 = {
+            -0.39300382,  0.27329835, -0.00711972,  0.00330865, -0.24905255
+        };
+
+        distCoeffs.put(0, 0, data2);
+
+        cameraParam.add(cameraMatrix);
+        cameraParam.add(distCoeffs);
+
         cameraPose(cameraParam.get(0), cameraParam.get(1), markerLength, dictionary);
         //MarkersDetector md = new MarkersDetector();
         //md.detect(dictionary);
@@ -48,7 +76,7 @@ public class App {
     }
 
     public static void cameraPose(Mat cameraMatrix, Mat distCoeffs, float markerLength, Dictionary dictionary) {
-        List<Point3> objectPoints = new ArrayList<>();
+        /*List<Point3> objectPoints = new ArrayList<>();
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
 
         //float markerLength = 0.07f; // Lunghezza del marker (in metri)
@@ -111,7 +139,7 @@ public class App {
             image.copyTo(imageCopy);
 
             if (!ids.empty()) {
-                //Aruco.drawDetectedMarkers(imageCopy, corners, ids);
+                Aruco.drawDetectedMarkers(imageCopy, corners, ids);
                 
                 for (int i = 0; i < corners.size(); i++) {
                     Calib3d.drawFrameAxes(imageCopy, cameraMatrix, distCoeffs, rvecs.get(i), tvecs.get(i), markerLength, 2);
@@ -121,6 +149,50 @@ public class App {
             canvas.showImage(converterToMat.convert(imageCopy));
         }
 
-        converterToMat.close();
+        converterToMat.close();*/
+        // Apri la webcam
+        VideoCapture capture = new VideoCapture(1);
+        if (!capture.isOpened()) {
+            System.out.println("Errore: impossibile aprire la webcam.");
+            return;
+        }
+        capture.set(Videoio.CAP_PROP_FRAME_WIDTH, 1280);
+        capture.set(Videoio.CAP_PROP_FRAME_HEIGHT, 720);
+
+        Mat frame = new Mat();
+        while (capture.read(frame)) {
+            // Rileva i marker ArUco
+            Mat ids = new Mat();
+            List<Mat> corners = new ArrayList<>();
+            List<Mat> rejected = new ArrayList<>();
+            Aruco.detectMarkers(frame, dictionary, corners, ids);
+
+            // Se vengono rilevati marker, calcola la posa e disegna gli assi
+            if (!ids.empty()) {
+                Mat rvecs = new Mat();
+                Mat tvecs = new Mat();
+                Aruco.estimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs, rvecs, tvecs);
+
+                for (int i = 0; i < ids.rows(); i++) {
+                    // Estrai i vettori di rotazione e traslazione per il marker corrente
+                    Mat rvec = rvecs.row(i);
+                    Mat tvec = tvecs.row(i);
+
+                    // Disegna l'asse sul marker rilevato
+                    Calib3d.drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, 0.1f);
+                }
+            }
+
+            // Visualizza il frame
+            Imgproc.putText(frame, "Press 'q' to exit", new Point(10, 30), Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 255, 255), 2);
+            HighGui.imshow("Webcam", frame);
+
+            if (HighGui.waitKey(1) == 'q') {
+                break;
+            }
+        }
+
+        capture.release();
+        HighGui.destroyAllWindows();
     }
 }
