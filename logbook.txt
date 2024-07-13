@@ -79,3 +79,31 @@ fonti: https://docs.opencv.org/4.x/d5/dae/tutorial_aruco_detection.html
 - ho provato a calibrare la camera per più tempo ma non cambia niente
     allora sto provando a calibrarla con più di 4 marker e quindi 
     ho creato una classe con una funzione per generare pagine di marker
+- non ho ottenuto alcun risultato modificando tempi e numero di marker,
+    credo proprio ci sia un problema di calibrazione e posa
+
+11/07/24
+- ho stampato delle tavole di marker aruco per fare dei test
+    e cercare di capire perche non funziona la posa e/o la calibrazione
+
+12/07/24
+- cerco di capire bene se i parametri della webcam vengono ottenuti correttamente
+    e se rispecchiano quelli reali
+- sono riuscito a sviluppare un programma python capace di calibrare la camera
+- ora cerco di aggiustare la posa per far funzionare tutto il sistema nel suo insieme
+- sono riuscito a far andare la posa e la calibrazione assieme, il problema è
+    che la calibrazione al momento va solo grazie al codice python, mentre la
+    posa funziona solo attraverso funzioni deprecate, con le funzioni odierne 
+    non riesco a farlo funzionare
+
+fonti: https://www.geeksforgeeks.org/camera-calibration-with-python-opencv/
+
+13/07/24
+- sto cercando di capire meglio il funzionamento dei metodi per la posa, 
+    così da cercare di utilizzare solo metodi attuali e non quelli deprecati
+- sono riuscito a sviluppare una classe per la posa della camera funzionante
+- non sono ancora riuscito a creare un metodo in java per poter calibrare la camera
+    correttamente, al momento però ho impostato che la calibrazione camera prende 
+    input dallo storage
+- momentaneamente nella classe App sono presenti due parametri hardcoded per poter
+    utilizzare i valori della camera restituiti dall'applicazione in python
