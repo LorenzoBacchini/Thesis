@@ -2,7 +2,10 @@
 ## Description
 This project aims to create a Java application to detect and follow some ArUco markers attached to small robots, in order to give them 
 orders to make them move in the field of view of a webcam positioned above them, which will then interpret the markers and calculate the next move
+
 ## How to
+> [!WARNING]
+> If the program doesn't seem to work or doesn't show anything, change the selectedCamera variable to use the right current camera
 ### Marker detection
 Use the released app</br>
 
