@@ -15,8 +15,8 @@ import java.util.ArrayList;
 
 
 public class MarkersDetector {
-    public void detect(Dictionary dictionary) throws FrameGrabber.Exception, InterruptedException {
-        VideoCapture capture = new VideoCapture(1);
+    public void detect(Dictionary dictionary, int selectedCamera) throws FrameGrabber.Exception, InterruptedException {
+        VideoCapture capture = new VideoCapture(selectedCamera);
         if (!capture.isOpened()) {
             System.out.println("Errore: impossibile aprire la webcam.");
             return;
