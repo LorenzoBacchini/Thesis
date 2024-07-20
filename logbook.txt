@@ -107,3 +107,28 @@ fonti: https://www.geeksforgeeks.org/camera-calibration-with-python-opencv/
     input dallo storage
 - momentaneamente nella classe App sono presenti due parametri hardcoded per poter
     utilizzare i valori della camera restituiti dall'applicazione in python
+
+18/07/24
+- inizio calcolo precisione della rilevazione e velocità della rilevazione
+- sto cercando di capire perchè la variabile markerLength che indica la lunghezza
+    dei marker influenzi di poco la posa anche se sballata di molto
+- sto cercando di capire perchè i marker appaiono alla distanza sbagliata
+
+19/07/24
+- test con python per capire se i problemi sono causati dal codice java o se
+    in generale le funzioni opencv garantiscono poca precisione
+
+20/07/24
+- le prove con python stanno dando alcuni problemi, ora sto cercando di capire
+    perchè la distanza della camera dal marker viene calcolata male
+- in teoria calibrazione e posa in python sono corrette ed infatti anche l'errore
+    di riproiezione e molto basso, adesso provo a convertire in java
+- sono riuscito a riportare le modifiche anche su java di conseguenza ora e possibile
+    vedere il tempo medio di elaborazione per frame e l'errore di riproiezione medio
+- continuo ad avere problemi con la stima della distanza che in base alla dimensione del 
+    marker e sempre doppia rispetto al valore che ci si aspetterebbe
+
+fonti: 
+https://docs.opencv.org/4.x/d5/d1f/calib3d_solvePnP.html
+https://docs.opencv.org/4.10.0/d9/d0c/group__calib3d.html#ga549c2075fac14829ff4a58bc931c033d
+https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
