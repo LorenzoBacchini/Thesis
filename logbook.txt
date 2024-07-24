@@ -132,3 +132,23 @@ fonti:
 https://docs.opencv.org/4.x/d5/d1f/calib3d_solvePnP.html
 https://docs.opencv.org/4.10.0/d9/d0c/group__calib3d.html#ga549c2075fac14829ff4a58bc931c033d
 https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
+
+23/07/24
+- alcuni test per verificare l'affidabilità del sistema e qualche aggiustamento
+    per far funzionare la calibrazione in java
+- ho trovato in rete fondamenti che riportano la maggiore precisione delle scacchiere
+    per calibrare la camera, a discapito della versatilità offerta dai marker aruco
+    ho deciso quindi di utilizzare le schacchiere semplici dato che posso ottenere immagini
+    di scacchiere di buona qualità una volta ed eseguire una tantum la calibrazione, 
+    non mi serve che sia dinamica e flessibile dato che la eseguo solo la prima volta
+
+fonti: https://webthesis.biblio.polito.it/secure/29489/1/tesi.pdf
+
+24/07/24
+- le calibrazione della camera effettuate dal codice python e java restituiscono risultati
+    leggermente diversi, sto quindi provando ad utilizzare la libreria opencv 4.10 anche in
+    java dato che python utilizza questa versione mentre al momento java utilizza la 4.5.5
+- sto cercando di capire e interpretare i vettori tvecs e rvecs per poter creare un
+    piano cartesiano su cui veder muovere i miei marker.
+- sto anche provando a far partire le coordinate della camera da valori specifici come (0;0)
+    e a rendere questa modifica permanente ad ogni distanza della camera dai marker

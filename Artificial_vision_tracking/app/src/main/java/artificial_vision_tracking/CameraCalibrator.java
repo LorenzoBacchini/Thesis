@@ -1,13 +1,7 @@
 package artificial_vision_tracking;
 
-import org.bytedeco.javacv.FrameGrabber;
-import org.opencv.aruco.Aruco;
-import org.opencv.aruco.Dictionary;
-import org.opencv.aruco.GridBoard;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
+import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
@@ -16,200 +10,78 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CameraCalibrator {
-    public static List<Mat> calibration(int markersX, int markersY, float markerLength, float markerSeparation, Dictionary dictionary) throws FrameGrabber.Exception{
-        // Parametri per la creazione della GridBoard
-        boolean refindStrategy = true;
 
-        List<List<Mat>> allMarkerCorners = new ArrayList<>();
-        List<Mat> allMarkerIds = new ArrayList<>();
-        Size imageSize = new Size();
-
-        GridBoard gridBoard = GridBoard.create(markersX, markersY, markerLength, markerSeparation, dictionary);
-
-        // Collected frames for calibration
-        File dir = new File(".\\src\\main\\resources\\images\\");
-        File[] imageFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".png"));
-
-        if (imageFiles == null || imageFiles.length == 0) {
-            System.out.println("Error: Could not find any images in the specified directory.");
-            return null;
-        }
-
-        for (File imageFile : imageFiles) {
-            Mat image = Imgcodecs.imread(imageFile.getAbsolutePath());
-
-            Mat gray = new Mat();
-            Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
-
-            List<Mat> markerCorners = new ArrayList<>();
-            List<Mat> rejectedMarkers = new ArrayList<>();
-            Mat markerIds = new Mat();  // IDs dei marker
-
-            // Detect markers
-            Aruco.detectMarkers(gray, dictionary, markerCorners, markerIds);
-
-            // Refind strategy to detect more markers
-            if (refindStrategy) {
-                Aruco.refineDetectedMarkers(image, gridBoard, markerCorners, markerIds, rejectedMarkers);
-            } 
-
-            // Verifica se sono stati rilevati marker
-            if (!markerIds.empty()) {
-                allMarkerCorners.add(markerCorners);
-                allMarkerIds.add(markerIds);
-                imageSize = gray.size();
-            }
-
-
-        }
-
-        Mat cameraMatrix = new Mat();
-        Mat distCoeffs = new Mat();
-
-        int calibrationFlags = Calib3d.CALIB_FIX_ASPECT_RATIO;
-        double aspectRatio = 1.0;
-
-        if ((calibrationFlags & Calib3d.CALIB_FIX_ASPECT_RATIO) != 0) {
-            cameraMatrix = Mat.eye(3, 3, CvType.CV_64F);
-            cameraMatrix.put(0, 0, aspectRatio);
-        }
-
-        // Prepare data for calibration
-        List<Mat> processedObjectPoints = new ArrayList<>();
-        List<Mat> processedImagePoints = new ArrayList<>();
-
-        long nFrames = allMarkerCorners.size();
-
-        for (int frame = 0; frame < nFrames; frame++) {
-            Mat currentObjPoints = new Mat();
-            Mat currentImgPoints = new Mat();
-
-            Aruco.getBoardObjectAndImagePoints(gridBoard, allMarkerCorners.get(frame), allMarkerIds.get(frame), currentObjPoints, currentImgPoints);
-
-            if (currentImgPoints.total() > 0 && currentObjPoints.total() > 0) {
-                processedImagePoints.add(currentImgPoints);
-                processedObjectPoints.add(currentObjPoints);
-            }
-        }
-
-        //System.out.println("\nProcessed image points: " + processedImagePoints + "\nProcessed object points: " + processedObjectPoints);
-
-        // Calibrate camera
-        double repError = Calib3d.calibrateCamera(
-                processedObjectPoints,
-                processedImagePoints,
-                imageSize,
-                cameraMatrix,
-                distCoeffs,
-                (List<Mat>)new ArrayList<Mat>(),                
-                (List<Mat>)new ArrayList<Mat>(),
-                calibrationFlags
-        );
-
-        System.out.println("\nCalibration error: " + repError);
-        System.out.println("\nCamera Matrix: " + cameraMatrix.dump());
-        System.out.println("\nDistortion Coefficients: " + distCoeffs.dump());
-
-        return List.of(cameraMatrix, distCoeffs);
-    }
-}
-
-
-
-/*
- * 
- package artificial_vision_tracking;
-
-import org.opencv.aruco.Aruco;
-import org.opencv.aruco.Dictionary;
-import org.opencv.aruco.GridBoard;
-import org.opencv.calib3d.Calib3d;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.io.File;
-
-public class CameraCalibrator {
-    public static List<Mat> calibration(int markersX, int markersY, float markerLength, float markerSeparation, Dictionary dictionary) {
-        List<List<Mat>> allCorners = new ArrayList<>();
-        List<Mat> allIds = new ArrayList<>();
-        Size imageSize = new Size();
-
-        // Create a grid board
-        GridBoard gridBoard = GridBoard.create(markersX, markersY, markerLength, markerSeparation, dictionary);
-
-        File dir = new File(".\\src\\main\\resources\\images\\");
-        File[] imageFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".png"));
-
-        if (imageFiles == null || imageFiles.length == 0) {
-            System.out.println("Error: Could not find any images in the specified directory.");
-            return null;
-        }
-
-        for (File imageFile : imageFiles) {
-            System.out.println("Processing file: " + imageFile.getName());
-            Mat image = Imgcodecs.imread(imageFile.getAbsolutePath());
-            Mat gray = new Mat();
-            Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
-
-            List<Mat> corners = new ArrayList<>();
-            Mat ids = new Mat();
-            List<Mat> rejected = new ArrayList<>();
-
-            Aruco.detectMarkers(gray, dictionary, corners, ids);
-
-            if (!ids.empty()) {
-                Aruco.refineDetectedMarkers(image, gridBoard, corners, ids, rejected);
-
-                allCorners.add(corners);
-                allIds.add(ids);
-                imageSize = image.size();
-            }
-        }
-
-        if (allIds.isEmpty()) {
-            System.out.println("No markers detected.");
-            return null;
-        }
-
-        Mat cameraMatrix = Mat.eye(3, 3, CvType.CV_64F);
-        Mat distCoeffs = Mat.zeros(5, 1, CvType.CV_64F);
+    public static void calibration(int boardWidth, int boardHeight) {
+        Size boardSize = new Size(boardWidth, boardHeight);
 
         List<Mat> objectPoints = new ArrayList<>();
         List<Mat> imagePoints = new ArrayList<>();
+        List<String> imageFiles = getImageFiles("..\\..\\python\\images\\");
 
-        for (int i = 0; i < allIds.size(); i++) {
-            Mat currentObjPoints = new Mat();
-            Mat currentImgPoints = new Mat();
-
-            Aruco.getBoardObjectAndImagePoints(gridBoard, allCorners.get(i), allIds.get(i), currentObjPoints, currentImgPoints);
-
-            if (currentImgPoints.total() > 0 && currentObjPoints.total() > 0) {
-                imagePoints.add(currentImgPoints);
-                objectPoints.add(currentObjPoints);
+        MatOfPoint3f objectPoint = new MatOfPoint3f();
+        for (int i = 0; i < boardHeight; i++) {
+            for (int j = 0; j < boardWidth; j++) {
+                objectPoint.push_back(new MatOfPoint3f(new Point3(j, i, 0.0f)));
             }
         }
 
-        // Ensure there are enough points for calibration
-        if (imagePoints.size() < 10 || objectPoints.size() < 10) {
-            System.out.println("Not enough marker detections for calibration. Please provide more images.");
-            return null;
+        for (String filePath : imageFiles) {
+            System.out.println("Processing " + filePath);
+            Mat image = Imgcodecs.imread(filePath);
+            Mat grayImage = new Mat();
+            Imgproc.cvtColor(image, grayImage, Imgproc.COLOR_BGR2GRAY);
+
+            MatOfPoint2f imageCorners = new MatOfPoint2f();
+            //boolean found = Calib3d.findChessboardCorners(grayImage, boardSize, Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE + Calib3d.CALIB_CB_FAST_CHECK);
+            boolean found = Calib3d.findChessboardCorners(grayImage, boardSize, imageCorners);
+
+            if (found) {
+                Imgproc.cornerSubPix(grayImage, imageCorners, new Size(11, 11), new Size(-1, -1),
+                        new TermCriteria(TermCriteria.EPS + TermCriteria.COUNT, 30, 0.001));
+
+                imagePoints.add(imageCorners);
+                objectPoints.add(objectPoint);
+                Calib3d.drawChessboardCorners(image, boardSize, imageCorners, found);
+                //Imgcodecs.imwrite("output_" + new File(filePath).getName(), image);
+            }
         }
 
-        double error = Calib3d.calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix, distCoeffs, new ArrayList<>(), new ArrayList<>(), Calib3d.CALIB_FIX_ASPECT_RATIO);
+        Mat cameraMatrix = Mat.eye(3, 3, CvType.CV_64F);
+        Mat distCoeffs = Mat.zeros(8, 1, CvType.CV_64F);
+        List<Mat> rvecs = new ArrayList<>();
+        List<Mat> tvecs = new ArrayList<>();
 
-        System.out.println("Calibration error: " + error);
-        List<Mat> calibrationResult = new ArrayList<>();
-        calibrationResult.add(cameraMatrix);
-        calibrationResult.add(distCoeffs);
+        double rms = Calib3d.calibrateCamera(objectPoints, imagePoints, boardSize, cameraMatrix, distCoeffs, rvecs, tvecs);
 
-        return calibrationResult;
+        System.out.println("RMS error: " + rms);
+        System.out.println("Camera Matrix: \n" + cameraMatrix.dump());
+        System.out.println("Distortion Coefficients: \n" + distCoeffs.dump());
+
+        // Reprojection error calculation
+        double totalError = 0;
+        double totalPoints = 0;
+        for (int i = 0; i < objectPoints.size(); i++) {
+            MatOfPoint2f projectedPoints = new MatOfPoint2f();
+            Calib3d.projectPoints(new MatOfPoint3f(objectPoints.get(i)), rvecs.get(i), tvecs.get(i), cameraMatrix, new MatOfDouble(distCoeffs), projectedPoints);
+            MatOfPoint2f imgPoints = new MatOfPoint2f(imagePoints.get(i));
+            double error = Core.norm(imgPoints, projectedPoints, Core.NORM_L2);
+            totalError += error * error;
+            totalPoints += objectPoints.get(i).total();
+        }
+
+        double meanError = Math.sqrt(totalError / totalPoints);
+        System.out.println("Mean Reprojection Error: " + meanError);
+    }
+
+    private static List<String> getImageFiles(String directoryPath) {
+        File dir = new File(directoryPath);
+        File[] files = dir.listFiles((dir1, name) -> name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".png"));
+        List<String> imageFiles = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                imageFiles.add(file.getAbsolutePath());
+            }
+        }
+        return imageFiles;
     }
 }
- * 
- */
