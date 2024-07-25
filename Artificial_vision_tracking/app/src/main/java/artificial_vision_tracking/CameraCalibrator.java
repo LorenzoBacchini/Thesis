@@ -11,7 +11,7 @@ import java.util.List;
 
 public class CameraCalibrator {
 
-    public static void calibration(int boardWidth, int boardHeight) {
+    public static List<Mat> calibration(int boardWidth, int boardHeight) {
         Size boardSize = new Size(boardWidth, boardHeight);
 
         List<Mat> objectPoints = new ArrayList<>();
@@ -71,6 +71,8 @@ public class CameraCalibrator {
 
         double meanError = Math.sqrt(totalError / totalPoints);
         System.out.println("Mean Reprojection Error: " + meanError);
+
+        return List.of(cameraMatrix, distCoeffs);
     }
 
     private static List<String> getImageFiles(String directoryPath) {
