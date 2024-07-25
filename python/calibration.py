@@ -5,7 +5,7 @@ import os
 import glob 
 
 # Define the dimensions of checkerboard 
-CHECKERBOARD = (5, 5) 
+CHECKERBOARD = (8, 11) 
 
 # Stop the iteration when specified 
 # accuracy, epsilon, is reached or 
