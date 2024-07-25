@@ -6,8 +6,8 @@ package artificial_vision_tracking;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.opencv.opencv_java;
-import org.opencv.aruco.Aruco;
-import org.opencv.aruco.Dictionary;
+import org.opencv.objdetect.Dictionary;
+import org.opencv.objdetect.Objdetect;
 import org.opencv.core.Mat;
 
 import java.util.List;
@@ -23,39 +23,45 @@ public class App {
         Loader.load(opencv_java.class);
     }
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException {
-        final int markersX = 5; // Numero di marker sull'asse X
-        final int markersY = 5; // Numero di marker sull'asse Y
+        final int markersX = 11; // Numero di marker sull'asse X
+        final int markersY = 8; // Numero di marker sull'asse Y
         final float markerLength = 0.03f; // Lunghezza del marker (in metri)
-        final float markerSeparation = 0.007f; // Distanza tra i marker (in metri)
-        final Dictionary dictionary = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_100);
+        //final float markerSeparation = 0.007f; // Distanza tra i marker (in metri)
+        final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
         final int selectedCamera = 1;
 
         //GenerateMarkersSheet gms = new GenerateMarkersSheet();
         //gms.generateMarkersSheet();
-        /*List<Mat> cameraParam = *///CameraCalibrator.calibration(markersX, markersY);
+        List<Mat> cameraParam = CameraCalibrator.calibration(markersX, markersY);
         
         
+        /*
         List<Mat> cameraParam = new ArrayList<>();
         Mat cameraMatrix = new Mat();
         Mat distCoeffs = new Mat();
 
         cameraMatrix = new Mat(3, 3, org.opencv.core.CvType.CV_64F);
         double[] data = {
-            2467.391234131247, 0, 21.41829784103059,
-            0, 2480.756519144619, 28.22193280277443,
-            0, 0, 1,
+            1339.572282371255, 0, 942.2153746376233,
+            0, 1337.74718206229, 581.1480012090642,
+            0, 0, 1
         };
         cameraMatrix.put(0, 0, data);
 
         distCoeffs = new Mat(1, 5, org.opencv.core.CvType.CV_64F);
         double[] data2 = {
-            -0.1497077459196013, -0.286752704622943, 0.06314562859062968, -0.03762669915402854, 0.3146440734931931
+            -0.3857984048205869,
+            0.06915335453979676,
+            -0.0002579661191431792,
+            -0.0004055500912263875,
+            0.1276107988945717
         };
 
         distCoeffs.put(0, 0, data2);
 
         cameraParam.add(cameraMatrix);
         cameraParam.add(distCoeffs);
+        */
         
 
         CameraPose.calcPose(cameraParam.get(0), cameraParam.get(1), markerLength, dictionary, selectedCamera);

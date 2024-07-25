@@ -7,8 +7,9 @@ import java.util.List;
 
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.opencv.aruco.Aruco;
-import org.opencv.aruco.Dictionary;
+import org.opencv.objdetect.Dictionary;
+import org.opencv.objdetect.Objdetect;
+import org.opencv.objdetect.ArucoDetector;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -29,6 +30,8 @@ public class CameraPose {
         int totalFrames = 0;
         double totalReprojectionError = 0;
         int markerCount = 0;
+        ArucoDetector arucoDetector = new ArucoDetector();
+        arucoDetector.setDictionary(dictionary);
         
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
 
@@ -79,7 +82,7 @@ public class CameraPose {
 
             List<Mat> corners = new ArrayList<>();
             Mat ids = new Mat();
-            Aruco.detectMarkers(gray, dictionary, corners, ids);
+            arucoDetector.detectMarkers(gray, corners, ids);
 
             if (!ids.empty()) {
                 // Converti la Mat degli ID in un array di tipo int
@@ -132,7 +135,8 @@ public class CameraPose {
                 }
 
                 totalFrames++;
-                Aruco.drawDetectedMarkers(frame, corners, ids);
+
+                Objdetect.drawDetectedMarkers(frame, corners, ids);
             }
 
             canvas.showImage(converterToMat.convert(frame));		

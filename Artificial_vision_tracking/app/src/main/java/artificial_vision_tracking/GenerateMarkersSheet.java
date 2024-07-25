@@ -1,10 +1,9 @@
 package artificial_vision_tracking;
 
-import org.opencv.aruco.Aruco;
 import org.opencv.core.CvType;
-
-import org.opencv.aruco.Dictionary;
-import org.opencv.aruco.GridBoard;
+import org.opencv.objdetect.Dictionary;
+import org.opencv.objdetect.Objdetect;
+import org.opencv.objdetect.GridBoard;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -18,10 +17,9 @@ public class GenerateMarkersSheet {
         float markerSeparation = 10; // Separazione tra i marker in pixel
 
         // Crea il dizionario Aruco per i marker 4x4
-        Dictionary dictionary = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_100);
-
+        Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
         // Crea una griglia di marker Aruco
-        GridBoard gridBoard = GridBoard.create(markersX, markersY, markerLength, markerSeparation, dictionary);
+        GridBoard gridBoard = new GridBoard(new Size(markersX, markersY), markerLength, markerSeparation, dictionary);
 
         // Calcola la dimensione totale dell'immagine
         int totalWidth = (int) (markersX * (markerLength + markerSeparation) - markerSeparation);
@@ -32,8 +30,7 @@ public class GenerateMarkersSheet {
         Mat markerImage = new Mat(imageSize, CvType.CV_8UC1, new Scalar(255));
 
         // Disegna la griglia dei marker sull'immagine
-        
-        gridBoard.draw(imageSize, markerImage, 10, 1);
+        gridBoard.generateImage(imageSize, markerImage, 10, 1);
 
         // Salva l'immagine con i marker
         Imgcodecs.imwrite("aruco_markers.png", markerImage);
