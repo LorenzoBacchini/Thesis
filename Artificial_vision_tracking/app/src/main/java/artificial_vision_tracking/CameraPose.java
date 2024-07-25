@@ -117,14 +117,15 @@ public class CameraPose {
                         Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec);
 
                         // Calcola la distanza del marker dalla fotocamera
-                        double distance = Core.norm(tvec);
-                        System.out.printf("Marker ID: %d - Distanza: %.2f m%n", (int) ids.get(i, 0)[0], distance);
+                        /*double distance = Core.norm(tvec);
+                        System.out.printf("Marker ID: %d - Distanza: %.2f m%n", (int) ids.get(i, 0)[0], distance);*/
 
                         // Disegna gli assi
                         drawAxes(frame, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, markerLength);
                         //Calib3d.drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength);
                         double repojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec, cameraMatrix, distCoeffs);
-                        totalReprojectionError += repojectionError;
+                        totalReprojectionError += repojectionError * repojectionError;
+                        markerCount += cornerPoints.total();
                         markerCount++;
                     }
 
@@ -147,7 +148,7 @@ public class CameraPose {
 
         System.out.println("Average time per frame: " + avgTimePerFrame + " ms");
         if (markerCount > 0) {
-            double avgReprojectionError = totalReprojectionError / markerCount;
+            double avgReprojectionError = Math.sqrt(totalReprojectionError / markerCount);
             System.out.printf("Errore di Riproiezione Medio: %.2f%n", avgReprojectionError);
         }
         canvas.dispose();
@@ -179,7 +180,7 @@ public class CameraPose {
         // Calcola l'errore di riproiezione
         double error = 0;
         
-        error = Core.norm(imgPoints, projectedPoints, Core.NORM_L2) / imgPoints.rows();
+        error = Core.norm(imgPoints, projectedPoints, Core.NORM_L2);
         return error;
     }
 }
