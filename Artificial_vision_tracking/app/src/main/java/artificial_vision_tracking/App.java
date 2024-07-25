@@ -11,7 +11,6 @@ import org.opencv.objdetect.Objdetect;
 import org.opencv.core.Mat;
 
 import java.util.List;
-import java.util.ArrayList;
 
 
 public class App {
