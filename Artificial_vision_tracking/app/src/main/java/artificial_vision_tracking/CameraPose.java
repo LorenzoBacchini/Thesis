@@ -9,6 +9,7 @@ import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.opencv.objdetect.Dictionary;
 import org.opencv.objdetect.Objdetect;
+import org.opencv.objdetect.DetectorParameters;
 import org.opencv.objdetect.ArucoDetector;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -24,14 +25,23 @@ import org.opencv.videoio.VideoCapture;
 
 public class CameraPose {
     private static boolean running = true;
+    private static final double DISTANCE_ERROR = 2.5;
 
     public static void calcPose(Mat cameraMatrix, Mat distCoeffs, float markerLength, Dictionary dictionary, int Selectedcamera) {
+        markerLength /= DISTANCE_ERROR;
+        
         long startTime = System.currentTimeMillis();
         int totalFrames = 0;
         double totalReprojectionError = 0;
         int markerCount = 0;
         ArucoDetector arucoDetector = new ArucoDetector();
         arucoDetector.setDictionary(dictionary);
+        /*DetectorParameters parameters = new DetectorParameters();
+        parameters.set_adaptiveThreshWinSizeMin(3);
+        parameters.set_adaptiveThreshWinSizeMax(23);
+        parameters.set_adaptiveThreshWinSizeStep(10);
+        parameters.set_adaptiveThreshConstant(7);
+        arucoDetector.setDetectorParameters(parameters);*/
         
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
 
@@ -77,8 +87,11 @@ public class CameraPose {
 
         Mat frame = new Mat();
         while (capture.read(frame) && running) {
+            Mat undistorted = new Mat();
+            Mat newCameraMatrix = Calib3d.getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, frame.size(), 0);
+            Calib3d.undistort(frame, undistorted, cameraMatrix, distCoeffs, newCameraMatrix);
             Mat gray = new Mat();
-            Imgproc.cvtColor(frame, gray, Imgproc.COLOR_BGR2GRAY);
+            Imgproc.cvtColor(undistorted, gray, Imgproc.COLOR_BGR2GRAY);
 
             List<Mat> corners = new ArrayList<>();
             Mat ids = new Mat();
@@ -106,7 +119,7 @@ public class CameraPose {
                         cornerPointsArray[j] = new Point(data[0], data[1]);
                     }
 
-                    //Crea la MatOfPoint3f con gli angoli del marker
+                    //Crea la MatOfPoint2f con gli angoli del marker
                     cornerPoints.fromArray(cornerPointsArray);
 
                     // Stima la posa usando solvePnP
@@ -114,17 +127,16 @@ public class CameraPose {
                     Mat tvec = new Mat();
 
                     if (cornerPoints.rows() >= 4) {
-                        Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec);
+                        Calib3d.solvePnP(objPoints, cornerPoints, newCameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec);
 
                         // Calcola la distanza del marker dalla fotocamera
                         /*double distance = Core.norm(tvec);
                         System.out.printf("Marker ID: %d - Distanza: %.2f m%n", (int) ids.get(i, 0)[0], distance);*/
 
                         // Disegna gli assi
-                        drawAxes(frame, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, markerLength);
-                        //Calib3d.drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength);
-                        double repojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec, cameraMatrix, distCoeffs);
-                        totalReprojectionError += repojectionError * repojectionError;
+                        drawAxes(undistorted, newCameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, markerLength);
+                        double reprojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec, newCameraMatrix, distCoeffs);
+                        totalReprojectionError += reprojectionError * reprojectionError;
                         markerCount += cornerPoints.total();
                         markerCount++;
                     }
@@ -133,14 +145,15 @@ public class CameraPose {
                     //System.out.println("ID Marker: " + idArray[i]);
                     //System.out.println("rvec: " + rvec.dump());
                     //System.out.println("tvec: " + tvec.dump());
+                    System.out.println("ID Marker: " + idArray[i] + " tvec: " + tvec.get(2, 0)[0]);
                 }
 
                 totalFrames++;
 
-                Objdetect.drawDetectedMarkers(frame, corners, ids);
+                Objdetect.drawDetectedMarkers(undistorted, corners, ids);
             }
 
-            canvas.showImage(converterToMat.convert(frame));		
+            canvas.showImage(converterToMat.convert(undistorted));		
         }
 
         long endTime = System.currentTimeMillis();
