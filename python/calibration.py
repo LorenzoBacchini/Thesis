@@ -70,7 +70,7 @@ for filename in images:
         print("Checkerboard not detected")  # Print message if checkerboard is not found
 
     cv2.imshow('img', image) 
-    cv2.waitKey(0) 
+    cv2.waitKey(500) 
 
 cv2.destroyAllWindows() 
 
