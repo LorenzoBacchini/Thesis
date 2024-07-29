@@ -10,6 +10,7 @@ import org.opencv.objdetect.Dictionary;
 import org.opencv.objdetect.Objdetect;
 import org.opencv.core.Mat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,17 +25,17 @@ public class App {
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException {
         final int markersX = 11; // Numero di marker sull'asse X
         final int markersY = 8; // Numero di marker sull'asse Y
-        final float markerLength = 0.03f; // Lunghezza del marker (in metri)
+        final float markerLength = 0.07f; // Lunghezza del marker (in metri)
         //final float markerSeparation = 0.007f; // Distanza tra i marker (in metri)
         final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
         final int selectedCamera = 1;
 
         //GenerateMarkersSheet gms = new GenerateMarkersSheet();
         //gms.generateMarkersSheet();
-        List<Mat> cameraParam = CameraCalibrator.calibration(markersX, markersY);
+        //List<Mat> cameraParam = CameraCalibrator.calibration(markersX, markersY);
         
         
-        /*
+        
         List<Mat> cameraParam = new ArrayList<>();
         Mat cameraMatrix = new Mat();
         Mat distCoeffs = new Mat();
@@ -60,7 +61,7 @@ public class App {
 
         cameraParam.add(cameraMatrix);
         cameraParam.add(distCoeffs);
-        */
+        
         
 
         CameraPose.calcPose(cameraParam.get(0), cameraParam.get(1), markerLength, dictionary, selectedCamera);
