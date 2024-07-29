@@ -36,7 +36,7 @@ https://docs.opencv.org/4.x/da/d13/tutorial_aruco_calibration.html
 02/07/24
 - continuo calibrazione e posa camera
 - download librerie opencv
-- ho inserito le librerie di opencv all'interno della cartella bin del jdk
+- ho inserito le librerie di opencv all'interno della cartella bin del jdk //non credo che sia necessario ad oggi 27/07/24 non trovo niente di nuovo dentro la cartella bin
 - tutto questo per poter utilizzare una classe completa per la calibrazione trovata su gituhub
 - divisione funzioni in più classi
 - pubblicazione prima release su github e modifica repo pubblica
@@ -148,7 +148,68 @@ fonti: https://webthesis.biblio.polito.it/secure/29489/1/tesi.pdf
 - le calibrazione della camera effettuate dal codice python e java restituiscono risultati
     leggermente diversi, sto quindi provando ad utilizzare la libreria opencv 4.10 anche in
     java dato che python utilizza questa versione mentre al momento java utilizza la 4.5.5
+- alla fine ho deciso di utilizzare le librerie wrapper offerte da javacv, aggiornate al momento alla loro versione
+    1.5.10 che corrispondono a opencv 4.9.0
+- sono riuscito ad aggiornare il codice con javacv 1.5.10 cioe opencv 4.9.0 ma ho avuto dei grandi
+    problemi nel capire che molte delle classi all'interno del package Aruco sono state spostate
+    all'interno del package Objdetect come ad esempio tutto ciò che riguarda i Dictionary, GridBoard
+    e in parte anche la rilevazione dei marker
+
+fonti: 
+https://github.com/bytedeco/javacv
+http://bytedeco.org/javacpp-presets/opencv/apidocs/    documentation for javacv 1.5.10 -> opencv 4.9.0
+https://docs.opencv.org/4.9.0/javadoc/                 documentation for opencv 4.9.0
+
+25/07/24
+- ho revisionato un po il codice e ho effettuato alcuni commit importanti sul git che contenevano
+    il primo codice completo per calibrare e calcolare la posa dei marker.
+    Ora con una calibrazione più precisa, anche il calcolo della distanza effettuato mediante l'uso della
+    norma del vettore di traslazione restituisce valori quasi impeccabili con un errore nell'ordine dei cm
+    anche se è necessario correggere tale distanza dividendola per una costante di valore 2.5
+- ho provato ad effettuare alcune operazioni di thresholding (soglia/sogliatura) dell'immagine per capire
+    se una rilevazione più fine mi garantisse risultati migliori ma per ora sembra cambiare poco-niente
+- ho continuato a revisionare il codice (specialmente quello della posa) per prendere maggiore coscienza di
+    come esso lavori e come i singoli metodi siano strutturati
 - sto cercando di capire e interpretare i vettori tvecs e rvecs per poter creare un
     piano cartesiano su cui veder muovere i miei marker.
+
+26/07/24
+- sto cercando di capire se esiste una libreria migliore per catturare le immagini dell webcam dato
+    che quella che sto usando ora sembra avere una qualità piuttosto bassa
+- considerando che la libreria che uso è quella di opencv penso che continuerò ad usare questa dato che
+    offre molte funzioni e me utili e non ho trovato altre librerie migliori sotto l'aspetto della risoluzione
+- ho scavato a fondo per capire se la calibrazione fosse corretta (sempre per il fatto che la distanza viene
+    calcolata male) ma prendendo un codice python che calibra e rimuove la distorsione dalla camera sono 
+    arrivato alla conclusione che la calibrazione è ottima
+- continuo a cercare di comprendere al meglio tutte le funzioni di javacv utilizzate
+
+fonti: https://www.youtube.com/watch?v=H5qbRTikxI4
+
+27/07/24
+- continuo comprensione metodi opencv/javacv approfondimento su immagini non distorte e utilizzo di 
+    esse per effettuare la posa della camera
+- prova a calibrare la camera con immagini che non siano solo al centro del campo visivo
+    (HO PROVATO MA NON è CAMBIATO NULLA ANZI è QUASI PEGGIORATO SECONDO ME PER 
+    ABBASSARE L'ERRORE DI CALIBRAZIONE SOTTO 0.45 E NECESSARIO CAMBIARE WEBCAM)
+- mi sono accorto che con marker 4x4 alcune volte il sistema rileva marker anche in oggetti di forma quadrata
+    che però non anno niente a che fare con i marker, da valutare un possibile passaggio a dizionari
+    5x5 o addirittura 6x6
 - sto anche provando a far partire le coordinate della camera da valori specifici come (0;0)
     e a rendere questa modifica permanente ad ogni distanza della camera dai marker
+
+29/07/24
+- sto cercando di comprendere perchè le coordinate dei marker rilevati dalla camera 
+    hanno sempre x e y negativi
+- mi sono accorto che il problema delle coordinate era causato dal fatto che l'immagine catturata dalla
+    classe VideoCapture aveva le dimensioni standard di 600x400 ma la risoluzione della camera era in
+    realta di 1920x1080 di conseguenza tutta una parte di cattura veniva croppata e non venivano calcolati
+    i valori corretti di tvec e rvec, sto ancora cercando di capire se il problema e del tutto risolto o 
+    solo in parte ma è già un passo avanti
+- ho risolto tutti i problemi riguardanti la posa, aggiustando la dimensione della finestra catturata 
+    (in questo caso 1920x1080) tutti i valori di tvec e rvec sono precisi e anche la distanza ora viene 
+    calcolata in maniera impeccabile, ho aggiunto anche una enum che mi permette di selezionare in automatico
+    tra le principali risoluzioni supportate dalla camera partendo dalla più alta.
+    
+fonti: 
+https://answers.opencv.org/question/189506/understanding-the-result-of-camera-calibration-and-its-units/
+https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
