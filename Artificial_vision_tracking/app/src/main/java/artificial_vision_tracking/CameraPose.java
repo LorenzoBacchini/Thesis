@@ -28,8 +28,12 @@ import org.opencv.videoio.Videoio;
 public class CameraPose {
     private static boolean running = true;
 
+    //Parameter to scale the frame size to speed up the marker detection
+    private static final int SCALE = 2;
+    private static final int SCALE_CANVAS = 2;
+
     public static void calcPose(Mat cameraMatrix, Mat distCoeffs, float markerLength, Dictionary dictionary, int Selectedcamera) {        
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
         int totalFrames = 0;
 
         double totalReprojectionError = 0;
@@ -62,12 +66,14 @@ public class CameraPose {
         for (ResolutionEnum resolution : ResolutionEnum.values()) {
             if (capture.set(Videoio.CAP_PROP_FRAME_WIDTH, resolution.getWidth()) &&
             capture.set(Videoio.CAP_PROP_FRAME_HEIGHT, resolution.getHeight())) {
-                System.out.println("Width: " + capture.get(Videoio.CAP_PROP_FRAME_WIDTH));
-                System.out.println("Height: " + capture.get(Videoio.CAP_PROP_FRAME_HEIGHT));
+                System.out.println("Frame Width: " + capture.get(Videoio.CAP_PROP_FRAME_WIDTH));
+                System.out.println("Frame Height: " + capture.get(Videoio.CAP_PROP_FRAME_HEIGHT));
                 resolutionSet = true;   
                 break;
             }
         }
+
+        System.out.println("Frame rate: " + capture.get(Videoio.CAP_PROP_FPS));
 
         if (!resolutionSet) {
             System.out.println("Error: impossible to set camera resolution.");
@@ -108,23 +114,56 @@ public class CameraPose {
             }
         });
 
-        long temp = System.currentTimeMillis();
         Mat frame = new Mat();
-        while (capture.read(frame) && running) {
-            Mat undistorted = new Mat();
+        long totalTimeDetection = 0;
+        long totalTimePose = 0;
+        long totalGetFrameTime = 0;
+        boolean lose = false;
+        long startGetFrameTime = 0;
+        startTime = System.currentTimeMillis();
+        long t = System.currentTimeMillis();
+        while (/*capture.read(frame) && */running) {
+            startGetFrameTime = System.currentTimeMillis();
+            capture.read(frame);
+            totalGetFrameTime += System.currentTimeMillis() - startGetFrameTime;
+
+            //Resize the frame to speed up the marker detection
+            Mat reducedFrame = new Mat();
+            Imgproc.resize(frame, reducedFrame, new Size(frame.width() / SCALE, frame.height() / SCALE));
+            
+            /*Mat undistorted = new Mat();
             Mat newCameraMatrix = Calib3d.getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, frame.size(), 0);
-            Calib3d.undistort(frame, undistorted, cameraMatrix, distCoeffs, newCameraMatrix);
+            Calib3d.undistort(frame, undistorted, cameraMatrix, distCoeffs, newCameraMatrix);*/
+            
             Mat gray = new Mat();
-            Imgproc.cvtColor(undistorted, gray, Imgproc.COLOR_BGR2GRAY);
+            Imgproc.cvtColor(reducedFrame, gray, Imgproc.COLOR_BGR2GRAY);
 
             List<Mat> corners = new ArrayList<>();
             Mat ids = new Mat();
-            arucoDetector.detectMarkers(gray, corners, ids);
 
+            long start = System.currentTimeMillis();
+            arucoDetector.detectMarkers(gray, corners, ids);
+            if (!corners.isEmpty()) {
+                rescalePoints(corners);
+            }
+            totalTimeDetection += System.currentTimeMillis() - start;
+            
             if (!ids.empty()) {
                 //Convert ID Mat to int array
                 int[] idArray = new int[(int) ids.total()];
                 ids.get(0, 0, idArray);
+                if (!containsZeroMarker(idArray)) {
+                    if(!lose) {
+                        t = System.currentTimeMillis();
+                        lose = true;
+                    }
+                } else {
+                    if (lose) {
+                        lose = false;
+                        System.out.println("Lose: " + (System.currentTimeMillis() - t));
+                    }
+                }
+                long startPose = System.currentTimeMillis();
                 for (int i = 0; i < idArray.length; i++) {
                     //Select the current marker
                     Mat cornerMat = corners.get(i).clone();
@@ -150,28 +189,17 @@ public class CameraPose {
                     Mat tvec = new Mat();
 
                     if (cornerPoints.rows() >= 4) {
-                        Calib3d.solvePnP(objPoints, cornerPoints, newCameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, false, Calib3d.SOLVEPNP_ITERATIVE);
+                        Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, false, Calib3d.SOLVEPNP_ITERATIVE);
 
                         // Calculating distance from camera
                         /*double distance = Core.norm(tvec);
                         System.out.printf("Marker ID: %d - Distance: %.2f m%n", (int) ids.get(i, 0)[0], distance);*/
 
                         // Draw marker axis
-                        drawAxes(undistorted, newCameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, markerLength);
-                        double reprojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec, newCameraMatrix, distCoeffs);
+                        //drawAxes(frame, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, markerLength);
+                        double reprojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec, cameraMatrix, distCoeffs);
                         totalReprojectionError += reprojectionError * reprojectionError;
                         markerCount += cornerPoints.total();
-                        markerCount++;
-                    }
-
-                    // Print rotation and translation vectors
-                    //System.out.println("ID Marker: " + idArray[i]);
-                    //System.out.println("rvec: " + rvec.dump());
-                    //System.out.println("tvec: " + tvec.dump());
-                    //System.out.println("ID Marker: " + idArray[i] + " tvec: " + tvec.get(2, 0)[0]);
-                    if (System.currentTimeMillis() - temp > 1500) {
-                        System.out.println("ID Marker: " + idArray[i] + " tvec: " + tvec.dump());
-                        temp = System.currentTimeMillis();
                     }
 
                     //Mats cleanup
@@ -180,27 +208,38 @@ public class CameraPose {
                     cornerPoints.release();
                     cornerMat.release();
                 }
-
-                totalFrames++;
-                Objdetect.drawDetectedMarkers(undistorted, corners, ids);
+                totalTimePose += System.currentTimeMillis() - startPose;
+                Objdetect.drawDetectedMarkers(frame, corners, ids);
                 ids.release();
                 corners.clear();
             }
+            totalFrames++;
 
+            //Resizing the frame to display it (only beacuse it looks better)
             Mat resizedFrame1_2 = new Mat();
-            Imgproc.resize(undistorted, resizedFrame1_2, new Size(undistorted.width() / 2, undistorted.height() / 2));
+            Imgproc.resize(frame, resizedFrame1_2, new Size(frame.width() / SCALE_CANVAS, frame.height() / SCALE_CANVAS));
+            
             canvas.showImage(converterToMat.convert(resizedFrame1_2));
             
             gray.release();
-            undistorted.release();
-            newCameraMatrix.release();
-            resizedFrame1_2.release();	
+            reducedFrame.release();
+            frame.release();
+            /**
+             * I can't release cameraMatrix because I need it in the next iteration.
+             * 
+             * I can release cameraMatrix only if i'm using undistorted Mat with the newCameraMatrix
+             * so i don't need cameraMatrix anymore.
+             */
+            //cameraMatrix.release();
+            resizedFrame1_2.release();
         }
 
         frame.release();
         long endTime = System.currentTimeMillis();
         double avgTimePerFrame = (endTime - startTime) / (double) totalFrames;
-
+        System.out.println("Average time per getFrameTime: " + totalGetFrameTime/ (double) totalFrames + " ms");
+        System.out.println("Average time per detection: " + totalTimeDetection/ (double) totalFrames + " ms");
+        System.out.println("Average time per pose estimation: " + totalTimePose/ (double) totalFrames + " ms");
         System.out.println("Average time per frame: " + avgTimePerFrame + " ms");
         if (markerCount > 0) {
             double avgReprojectionError = Math.sqrt(totalReprojectionError / markerCount);
@@ -211,6 +250,17 @@ public class CameraPose {
         converterToMat.close();
     }
 
+
+    /**
+     * Method to draw the axes of the marker an the position of the marker
+     * !IMPORTANT! this method takes a lot of time to be executed so use it only for debugging  
+     * @param image
+     * @param cameraMatrix
+     * @param distCoeffs
+     * @param rvec
+     * @param tvec
+     * @param length
+     */
     private static void drawAxes(Mat image, Mat cameraMatrix, MatOfDouble distCoeffs, Mat rvec, Mat tvec, float length) {
         MatOfPoint3f axis = new MatOfPoint3f(
             new Point3(0, 0, 0),
@@ -226,20 +276,24 @@ public class CameraPose {
         Imgproc.line(image, pts[0], pts[1], new Scalar(0, 0, 255), 2); // X asse in rosso
         Imgproc.line(image, pts[0], pts[2], new Scalar(0, 255, 0), 2); // Y asse in verde
         Imgproc.line(image, pts[0], pts[3], new Scalar(255, 0, 0), 2); // Z asse in blu
-        /*Imgproc.putText(
-            image, 
-            "x: " + rvec.get(0,0)[0] + "y: " + rvec.get(1,0)[0], 
-            pts[0], 
-            Imgproc.FONT_HERSHEY_PLAIN,
-            1.0, 
-            new Scalar(0, 0, 255),
-            2, 
-            Imgproc.LINE_AA
-        );*/
+
+        String tvecText = String.format("tvec: [%.2f, %.2f, %.2f]", tvec.get(0, 0)[0], tvec.get(1, 0)[0], tvec.get(2, 0)[0]);
+        Point textPos = new Point(pts[0].x, pts[0].y - 10); // Posizionare il testo sopra il marker
+        Imgproc.putText(image, tvecText, textPos, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(255, 255, 255), 2, Imgproc.LINE_AA);
         axis.release();
         projectedPoints.release();
     }
 
+    /**
+     * Method to calculate the reprojection error
+     * @param objPoints
+     * @param imgPoints
+     * @param rvec
+     * @param tvec
+     * @param cameraMatrix
+     * @param distCoeffs
+     * @return
+     */
     private static double calculateReprojectionError(MatOfPoint3f objPoints, MatOfPoint2f imgPoints, Mat rvec, Mat tvec, Mat cameraMatrix, Mat distCoeffs) {
         MatOfPoint2f projectedPoints = new MatOfPoint2f();
         Calib3d.projectPoints(objPoints, rvec, tvec, cameraMatrix, new MatOfDouble(distCoeffs), projectedPoints);
@@ -250,5 +304,34 @@ public class CameraPose {
         error = Core.norm(imgPoints, projectedPoints, Core.NORM_L2);
         projectedPoints.release();
         return error;
+    }
+
+    /**
+     * Method to rescale the points detected by the marker detection if the frame is resized to speed up the detection
+     * @param corners
+     */
+    private static void rescalePoints(List<Mat> corners) {
+        for (Mat corner : corners) {
+            for (int i = 0; i < 4; i++) {
+                double[] data = corner.get(0, i);
+                data[0] *= SCALE;
+                data[1] *= SCALE;
+                corner.put(0, i, data);
+            }
+        }
+    }
+
+    /**
+     * Method to check if the marker array contains the zero marker
+     * @param idsArray
+     * @return
+     */
+    private static boolean containsZeroMarker(int[] idsArray) {
+        for (int i = 0; i < idsArray.length; i++) {
+            if (idsArray[i] == 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }
