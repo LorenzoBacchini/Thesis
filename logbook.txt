@@ -209,7 +209,65 @@ fonti: https://www.youtube.com/watch?v=H5qbRTikxI4
     (in questo caso 1920x1080) tutti i valori di tvec e rvec sono precisi e anche la distanza ora viene 
     calcolata in maniera impeccabile, ho aggiunto anche una enum che mi permette di selezionare in automatico
     tra le principali risoluzioni supportate dalla camera partendo dalla più alta.
-    
+
 fonti: 
 https://answers.opencv.org/question/189506/understanding-the-result-of-camera-calibration-and-its-units/
 https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
+
+30/07/24
+- lavoro su alcuni miglioramenti in termini di efficienza e velocità del ciclo while nel quale 
+    vengono rilevati i marker e calcolata la posa
+- mi sono accorto che posso usare alcune strategie per migliorare la velocita di cattura delle immagini
+    come ad esempio evitare di usare il metodo undistort per analizzare le immagini, se la camera non 
+    presenta distorsioni molto elevate conviene non chiamare tale funzione in quanto molto dispendiosa
+
+31/07/24
+- lavoro sulla parallelizzazione del codice
+    alla fine ho deciso di non parallelizzare dato che il quadagno era minimo
+- ho provato a fare dei test utilizzando come input un video preregistrato con la camera del mio cellulare
+    così da poter testare una camera a 60fps ma comunque sembra che vi sia una perdita significativa del 
+    marker che spesso durante i movimenti di camera non viene rilevato per circa 30/35 millisecondi fino
+    ad arrivare a perdite maggiori fino a 500 millisecondi
+- ho trovato un'articolo (quello nelle fonti) che spiega come velocizzare e rendere più efficiente il processo
+    di rilevazione dei marker e quindi sto provando ad attuarlo per vedere se ottengo vantaggi significativi
+- l'articolo parlava di possibili soluzioni molto a livello teorico senza scendere troppo nel pratico, e stato
+    però utile per capire che potrebbe essere un problema di motion blur dovuto allo scarso frame rate della
+    camera e in generale all'hardware su cui il software viene fatto girare
+- ho scoperto che marker più piccoli portano via meno tempo per la rilevazione a discapito però della precisione
+
+fonti: http://andrewd.ces.clemson.edu/courses/cpsc482/papers/RMM18_speededAruco.pdf
+
+01/08/24
+- sto continuando a fare dei test per capire dove si può ottimizzare l'algoritmo e mi sono accorto che solo
+    la funzione che disegna gli assi e le posizioni sull'immagine di output impiega 30ms per essere eseguito,
+    quindi può essere rimosso/commentato per il momento
+- sono riuscito a ridurre all'osso tutti i tempi di elaborazione di immagini e posa, riducendo la risoluzione
+    dell'immagine utilizzata da detectMarkers e rimuovendo la fase di disegno degli assi sui marker, adesso avendo
+    la webcam che massimo registra 30fps e avendo un tempo di elaborazione di circa 15ms tra rilevazione e posa
+    i restanti 15ms vengono sprecati dalla camera in quanto non riesce a leggere più veloce di così essendo a 30fps
+- il codice al momento e parecchio sporco e va ripulito da molti test, inoltre vanno aggiunti alcuni paramteri di
+    rilevazione come minMarkerDistanceRate min/maxMarkerPerimeterRate e magari giocare un po sul thresholding
+    per evitare di leggere più marker del dovuto e aggiustare ogni aspetto della rilevazione
+- bisogna stare attenti a non diminuire troppo la risoluzione dell'immagine usata per fare il detect dei marker
+    altrimenti i pixel utilizzati non sono sufficienti a rilevare tutti i marker nell'immagine
+- fai altri test sul loss, così da capire se puo essere sufficiente così o magari testa i 60 frame con i video del
+    telefono
+
+03/08/24
+- ho continuato a fare test per valutare le prestazioni del sistema e mi sono accorto che le azioni che impiegano
+    più tempo per essere eseguite sono proprio tutte quelle operazioni che servono a stampare gli assi sul frame, 
+    disegnare il frame sul canvas o ridimensionare la finestra per inserirla in modo più gradevole nel canvas,
+    questo significa che in una possibile implementazione del sistema, rimuovendo tutte queste funzioni "superflue"
+    in quanto utili soltanto ad avere un riscontro grafico di ciò che la camera vede, il sistema può velocizzarsi di molto
+    lavorando anche a frame più alti (60fps) permettendo quindi una diminuzione del motion blur e in generale una 
+    rilevazione e posa migliori
+- tieni a mente che per i tempi di rilevazione dei frame ci sono tre parametri principali:
+    il tempo di rilevazione dei marker non cambia di molto con l'aumentare dei marker ma è già di per se abbastanza alto
+     è possibile abbassare questo tempo grazie a risoluzioni più basse
+
+    il tempo di posa dei marker, tendenzialmente basso ma aumenta molto all'aumentare dei marker, lo si può abbassare 
+     parecchio evitando di stampare sul frame i vari assi e la posizione dei marker
+
+    il tempo per ridimensionare stampare sul canvas il frame
+
+    il tempo per ottenere un nuovo frame
