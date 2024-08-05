@@ -73,6 +73,8 @@ public class CameraPose {
             }
         }
 
+        //Getting the frame rate
+        long frameDuration = (long) (1000 / capture.get(Videoio.CAP_PROP_FPS));
         System.out.println("Frame rate: " + capture.get(Videoio.CAP_PROP_FPS));
 
         if (!resolutionSet) {
@@ -122,9 +124,14 @@ public class CameraPose {
         long startGetFrameTime = 0;
         startTime = System.currentTimeMillis();
         long t = System.currentTimeMillis();
+        long startWhile = 0;
         while (/*capture.read(frame) && */running) {
+            startWhile = System.currentTimeMillis();
             startGetFrameTime = System.currentTimeMillis();
             capture.read(frame);
+            if (frame.empty()) {
+                break;
+            }
             totalGetFrameTime += System.currentTimeMillis() - startGetFrameTime;
 
             //Resize the frame to speed up the marker detection
@@ -212,6 +219,11 @@ public class CameraPose {
                 Objdetect.drawDetectedMarkers(frame, corners, ids);
                 ids.release();
                 corners.clear();
+            } else {
+                if (!lose) {
+                    t = System.currentTimeMillis();
+                    lose = true;
+                }
             }
             totalFrames++;
 
@@ -232,6 +244,17 @@ public class CameraPose {
              */
             //cameraMatrix.release();
             resizedFrame1_2.release();
+
+            // Code to limit the frame rate to the camera frame rate
+            long delta = System.currentTimeMillis() - startWhile;
+            if (delta < frameDuration) {
+                try {
+                    //System.out.println("Sleeping for: " + (frameDuration - (delta)) + " ms");
+                    Thread.sleep(frameDuration - (delta));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         frame.release();
