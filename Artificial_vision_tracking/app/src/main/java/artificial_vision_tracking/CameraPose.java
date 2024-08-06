@@ -45,10 +45,13 @@ public class CameraPose {
         
         //Setting the detector parameters
         DetectorParameters parameters = new DetectorParameters();
+        //parameters to detect the markers with different thresholds
         parameters.set_adaptiveThreshWinSizeMin(3);
         parameters.set_adaptiveThreshWinSizeMax(23);
         parameters.set_adaptiveThreshWinSizeStep(10);
         parameters.set_adaptiveThreshConstant(7);
+        //parameter to set the size of the black border around the marker
+        parameters.set_markerBorderBits(1);
         arucoDetector.setDetectorParameters(parameters);
         
         //Getting the camera
@@ -72,6 +75,9 @@ public class CameraPose {
                 break;
             }
         }
+
+        //Setting the camera exposure to reduce the motion blur
+        System.out.println("exposure 3: " + capture.set(Videoio.CAP_PROP_EXPOSURE, -7));
 
         //Getting the frame rate
         long frameDuration = (long) (1000 / capture.get(Videoio.CAP_PROP_FPS));
@@ -246,11 +252,9 @@ public class CameraPose {
             resizedFrame1_2.release();
 
             // Code to limit the frame rate to the camera frame rate
-            long delta = System.currentTimeMillis() - startWhile;
-            if (delta < frameDuration) {
+            if (System.currentTimeMillis() - startWhile < frameDuration) {
                 try {
-                    //System.out.println("Sleeping for: " + (frameDuration - (delta)) + " ms");
-                    Thread.sleep(frameDuration - (delta));
+                    Thread.sleep(frameDuration - (System.currentTimeMillis() - startWhile));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

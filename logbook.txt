@@ -271,3 +271,28 @@ fonti: http://andrewd.ces.clemson.edu/courses/cpsc482/papers/RMM18_speededAruco.
     il tempo per ridimensionare stampare sul canvas il frame
 
     il tempo per ottenere un nuovo frame
+- sarebbe importante avere una webcam 60fps con esposizione regolabile in modo da poter ridurre al minimo il motion blur
+
+05/08/24
+- continuo di test con video preregistrati e webcam, la reattività del sistema sembra buona, con tempi in ms molto bassi
+    per quanto riguarda i video preregistrati e un po' più alti nel caso di webcam, questo forse dovuto al fatto che la 
+    webcam ha una qualità inferiore rispetto a quella dello smartphone, sperando in una webcam di qualità questi problemi
+    dovrebbero risolversi, inoltre la perdità di marker è ancora piuttosto presente anche se penso possa essere mitigata
+    di molto usando webcam con frame rate più alto e personalizzazione dei parametri di esposizione ecc...
+- in realtà la velocità reattività maggiore dei video preregistrati è data dal fatto che avendoli passati sul pc tramite
+    whatsapp la loro qualità è molto calata, quindi avendo frame più piccoli e meno pesanti, sono più facili da ottenere
+- anche l'aiuto di hardware più potente credo possa migliorare di molto le prestazioni delle funzioni di opencv
+
+06/07/24
+- piccoli test su parametri per la rilevazione dei marker come minMarkerDistanceRate min/maxMarkerPerimeterRate, 
+    niente di particolarmente importante, e soprattutto dopo alcuni test non ho ritenuto necessari questi parametri quindi li ho 
+    rimossi
+- ho continuato a cercare di capire perchè alcune volte la fase di cattura dell'immagine impiega molto tempo 
+    e sono giunto alla conclusione che il problema principale è dato dall'elevata qualità dell'immagine da
+    catturare e dal suo bitrate, il problema può essere attenuato come già faccio abbassando la qualità dell'immagine
+    di un certo valore anche se dovrei abbassarla già in fase di cattura e non solo in fase di rilevazione marker così
+    da ridurre sia i tempi di cattura che quelli di rilevazione e non solo questi ultimi
+- sono finalmente riuscito a abbassare il tempo di esposizione e quindi adesso il motion blur e nettamente migliorato e 
+    penso di poter far muovere i robot a più di 1 m/s, inoltre sono riuscito a farlo su una camera a 30fps quindi 
+    probabilmente l'unico vincolo è rappresentato dall'illuminazione della stanza che deve consentire immagini ben visibili
+    anche con tempi di esposizione brevi
