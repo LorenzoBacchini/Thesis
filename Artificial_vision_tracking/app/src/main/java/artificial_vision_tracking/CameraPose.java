@@ -52,6 +52,10 @@ public class CameraPose {
         parameters.set_adaptiveThreshConstant(7);
         //parameter to set the size of the black border around the marker
         parameters.set_markerBorderBits(1);
+        //Augmented pixel per cell (reduce if the performance is too low)
+        parameters.set_perspectiveRemovePixelPerCell(16);
+        //Margin of pixels to remove from the final image (0.1 is 10%)
+        parameters.set_perspectiveRemoveIgnoredMarginPerCell(0.1);
         arucoDetector.setDetectorParameters(parameters);
         
         //Getting the camera
@@ -77,7 +81,7 @@ public class CameraPose {
         }
 
         //Setting the camera exposure to reduce the motion blur
-        System.out.println("exposure 3: " + capture.set(Videoio.CAP_PROP_EXPOSURE, -7));
+        capture.set(Videoio.CAP_PROP_EXPOSURE, -7);
 
         //Getting the frame rate
         long frameDuration = (long) (1000 / capture.get(Videoio.CAP_PROP_FPS));
