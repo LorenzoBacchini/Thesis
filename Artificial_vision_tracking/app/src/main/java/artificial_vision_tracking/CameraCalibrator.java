@@ -11,12 +11,12 @@ import java.util.List;
 
 public class CameraCalibrator {
 
-    public static List<Mat> calibration(int boardWidth, int boardHeight) {
+    public static List<Mat> calibration(int boardWidth, int boardHeight, String directoryPath) {
         Size boardSize = new Size(boardWidth, boardHeight);
 
         List<Mat> objectPoints = new ArrayList<>();
         List<Mat> imagePoints = new ArrayList<>();
-        List<String> imageFiles = getImageFiles("..\\..\\python\\images\\");
+        List<String> imageFiles = getImageFiles(directoryPath);
 
         MatOfPoint3f objectPoint = new MatOfPoint3f();
         for (int i = 0; i < boardHeight; i++) {
