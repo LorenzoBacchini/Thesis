@@ -18,3 +18,6 @@ To perform camera calibration and see the result on the camera pose you need to 
    showing you a canvas with the image captured by the camera and a pose estimation of the markers detected
 
 you can use the images in the aruco_markers folder to see the result
+
+> [!WARNING]
+> Make sure there is enough light in the scene otherwise the markers may not be detected
