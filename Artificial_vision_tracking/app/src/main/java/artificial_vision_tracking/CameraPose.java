@@ -308,7 +308,7 @@ public class CameraPose {
         Imgproc.line(image, pts[0], pts[3], new Scalar(255, 0, 0), 2); // Z asse in blu
 
         String tvecText = String.format("tvec: [%.2f, %.2f, %.2f]", tvec.get(0, 0)[0], tvec.get(1, 0)[0], tvec.get(2, 0)[0]);
-        String rvecText = String.format("rvec: [%.2f, %.2f, %.2f]", 0.0, (rvec.get(1, 0)[0] * 180) / Math.PI, (rvec.get(2, 0)[0] * 180) / Math.PI);
+        String rvecText = String.format("rvec: [%.2f, %.2f, %.2f]", (rvec.get(0, 0)[0] * 180) / Math.PI, (rvec.get(1, 0)[0] * 180) / Math.PI, (rvec.get(2, 0)[0] * 180) / Math.PI);
         Point tvectextPos = new Point(pts[0].x -50, pts[0].y - 15); // Posizionare il testo sopra il marker
         Point rvectextPos = new Point(pts[0].x -50, pts[0].y + 75); // Posizionare il testo in alto a sinistra
         Imgproc.putText(image, tvecText, tvectextPos, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255, 255, 255), 2, Imgproc.LINE_AA);
