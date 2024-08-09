@@ -11,10 +11,10 @@ Use the released app</br>
 
 ### Calibration and pose
 To perform camera calibration and see the result on the camera pose you need to clone the repository and then:
-1. insert images taken from your webcam of a chessboard into python/images. </br>
-   Modify the CHECKBOARD parameter of the .py "calibration" file to make it reflect the number of rows and columns of the chessboard used (do not use images of aruco chessboards/boards, they are not recognized)
-3. launch the python program inside the python folder called "calibration"
-4. insert the calibration parameters obtained from the python program into the fields of the App class: data and data2
-you can now launch the App class and see the result of the calibration used in the CameraPose class
+1. insert images taken from your webcam of a chessboard into a folder in your pc. </br>
+2. specify the folder path you chose in the directoryPath attribute inside the App class 
+   Modify the CHECKBOARD parameter markersX and markersY in the App class to match your checkboard size (use only traditional checkboard, not aruco or charuco checkboard)
+3. Now you can launch the main inside the App class, you will see a list of images path in processing in the terminal, in order to return camera parameters, then the pose program will start,
+   showing you a canvas with the image captured by the camera and a pose estimation of the markers detected
 
-in both cases use the images in the aruco_markers folder to see the result
+you can use the images in the aruco_markers folder to see the result
