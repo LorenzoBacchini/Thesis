@@ -211,9 +211,8 @@ public class CameraPose {
                         // Calculating distance from camera
                         /*double distance = Core.norm(tvec);
                         System.out.printf("Marker ID: %d - Distance: %.2f m%n", (int) ids.get(i, 0)[0], distance);*/
-
                         // Draw marker axis
-                        //drawAxes(frame, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, markerLength);
+                        drawAxes(frame, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, markerLength);
                         double reprojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec, cameraMatrix, distCoeffs);
                         totalReprojectionError += reprojectionError * reprojectionError;
                         markerCount += cornerPoints.total();
@@ -309,8 +308,11 @@ public class CameraPose {
         Imgproc.line(image, pts[0], pts[3], new Scalar(255, 0, 0), 2); // Z asse in blu
 
         String tvecText = String.format("tvec: [%.2f, %.2f, %.2f]", tvec.get(0, 0)[0], tvec.get(1, 0)[0], tvec.get(2, 0)[0]);
-        Point textPos = new Point(pts[0].x, pts[0].y - 10); // Posizionare il testo sopra il marker
-        Imgproc.putText(image, tvecText, textPos, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(255, 255, 255), 2, Imgproc.LINE_AA);
+        String rvecText = String.format("rvec: [%.2f, %.2f, %.2f]", 0.0, (rvec.get(1, 0)[0] * 180) / Math.PI, (rvec.get(2, 0)[0] * 180) / Math.PI);
+        Point tvectextPos = new Point(pts[0].x -50, pts[0].y - 15); // Posizionare il testo sopra il marker
+        Point rvectextPos = new Point(pts[0].x -50, pts[0].y + 75); // Posizionare il testo in alto a sinistra
+        Imgproc.putText(image, tvecText, tvectextPos, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255, 255, 255), 2, Imgproc.LINE_AA);
+        Imgproc.putText(image, rvecText, rvectextPos, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255, 255, 255), 2, Imgproc.LINE_AA);
         axis.release();
         projectedPoints.release();
     }
