@@ -296,3 +296,11 @@ fonti: http://andrewd.ces.clemson.edu/courses/cpsc482/papers/RMM18_speededAruco.
     penso di poter far muovere i robot a più di 1 m/s, inoltre sono riuscito a farlo su una camera a 30fps quindi 
     probabilmente l'unico vincolo è rappresentato dall'illuminazione della stanza che deve consentire immagini ben visibili
     anche con tempi di esposizione brevi
+
+07/08/24
+- qualche test sui valori di rotazione dei marker
+
+09/08/24
+- ho sistemato il codice della repo e ho iniziato a guardare il robottino
+- dovrei fare che la calibrazione scrive i dati della camera su un file e ogni volta invece di eseguire la calibrazione controllo
+    se il file esiste e in caso prendo i dato dal file
