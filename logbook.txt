@@ -304,3 +304,61 @@ fonti: http://andrewd.ces.clemson.edu/courses/cpsc482/papers/RMM18_speededAruco.
 - ho sistemato il codice della repo e ho iniziato a guardare il robottino
 - dovrei fare che la calibrazione scrive i dati della camera su un file e ogni volta invece di eseguire la calibrazione controllo
     se il file esiste e in caso prendo i dato dal file
+
+21/08/24
+- sto cercando di capire come poter programmare il robot, ho capito che il "cervello" del robot è composto da un M5 CORE,
+    e che può essere programmato via usb o via wifi tramite un programma chiamato UIFlow anche se ho trovato un'estensione di
+    vs code che però al momento non funziona
+
+- ho flashato il codice base del M5 CORE e utilizzando UIFlow sono riuscito a programmare semplici cose, suoni, colore dello 
+    sfondo ecc... 
+    tutto questo tramite la funzione wifi, ora sto provando attraverso la funzionalità usb a utilizzare l'estensione chiamata:
+    vscode-m5stack-mpy per vscode, ho avuto alcuni problemi con questa estensione perchè non mi permetteva di selezionare la porta,
+    come dice infatti la documentazione, una volta installata dovrebbe comparire un pulsante "Add M5Stack" nella barra di stato in
+    fondo allo schermo ma questo non accadeva, ho risolto con i passaggi a questo link, utilizzando alcuni comandi npm su terminale:
+    https://github.com/curdeveryday/vscode-m5stack-mpy/issues/13#issuecomment-1895764675
+    una volta lanciati tali comandi e riavviato vscode il pulsante e comparso e funziona
+    
+    API KEY: 67FA2E42
+
+fonti: 
+https://docs.m5stack.com/en/uiflow/uiflow_web           Link per scaricare il burner 
+https://docs.m5stack.com/en/uiflow/m5core/program       Link del tutorial per fleshare il firmware base per M5 CORE
+
+22/08/24
+- continuo a cercare di programmare il robot, ora sto riuscendo a farlo comunicare con vscode grazie all'estensione trovata ieri
+- il problema e che non so come utilizzare
+  le funzioni del lidarbot perchè l'm5 core è una cosa ma come si vede dalle immagini in questa pagina: 
+  https://docs.m5stack.com/en/app/lidarbot quest'ultimo comunica con una scheda che comanda effettivamente tutte componenti del 
+  robot di conseguenza non so come controllarlo
+- adesso provo con il codice della repo: https://github.com/m5stack/Applications-LidarBot e arduino a lanciare e modificare
+    tale codice per vedere se funziona
+- con arduino so avendo molti problemi, molto lento a verificare il codice e nonostante tutti i passaggi ancora non commpila
+    correttamente, sto provando quindi con platformIO in vscode
+- Innanzitutto ho importato tramite l'interfaccia di PlatformIO le librerie M5Unified e M5Dial (forse Dial non serviva), poi
+    ho dovuto modificare tutti gli include di M5Stack con M5Unified perché ormai Stack è deprecato e quindi non è più incluso nelle
+    librerie, dopodiché ho dovuto modificare alcune funzioni che in Unified erano leggermente diverse
+    Per il momento il codice compila e può essere flashato sul robot, il tutto sembra andare, adesso non resta che capire il codice e
+    smanettarci un po'
+
+24/08/24
+- piccolo test per verificare il funzionamento dell'applicazione di rilevazione e alcuni test con il robot e la comprensione del codice
+
+26/08/24
+- continuo analisi codice robot
+- sto provando ad inserire l'immagine del marker nello schemro dell' M5Core
+- sono riuscito a inserire l'immagine, va codificata in esadecimale con 16 bit per pixel ed è importante che l'immagine sia 320x240 e che
+    per ogni nel file c siano scritti tutti i byte per ogni pixel es: 0X4F e non che un elemento dell'array nel file c rappresenti tutti
+    i byte di un pixel es: 0X67FF
+    è anche importante che l'array nel file c abbia dimensione di 153600
+- infine ho continuato con alcuni test per capire perchè il lidar non stampasse su schermo le distanze dagli oggetti
+- c'è un errore secondo il quale quando entro nel while del getData la linea di clock scl e data sda di i2c sono collegate allo stesso
+    pin (indaga)
+
+fonti: 
+https://docs.m5stack.com/en/arduino/m5core/lcd      Documentazione librerie m5core
+https://notisrac.github.io/FileToCArray/            Libreria per convertire immagini in array C, (ricordati di spuntare la casella "Separate bytes for pixels)
+
+27/08/24
+- continuo analisi funzioni lidar
+- ho ricreato il progetto di platformIO perche avevo fatto alcuni danni ora e anche pushato sulla repo nella sua versione base e funzionante
