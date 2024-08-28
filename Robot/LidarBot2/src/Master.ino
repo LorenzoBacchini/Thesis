@@ -18,6 +18,8 @@ X2 lidar;
 LidarCar lidarcar;
 Preferences preferences;
 
+extern const unsigned char gImage_4x4_0[];
+
 void setLcd() {
   M5.Lcd.clear(BLACK);
 //  M5.Lcd.fillScreen(BLACK);
@@ -185,7 +187,9 @@ void setup() {
   Serial1.begin(115200, SERIAL_8N1, 16, 17);
   Serial2.begin(115200);
 
-   
+  M5.Lcd.fillScreen(TFT_BLACK);
+  M5.Lcd.pushImage(0, 0, 320, 240, (uint16_t *)gImage_4x4_0);
+  delay(2000);
   setLcd();
   //Serial.printf("got crc %x\r\n", cover_crc(msg_data, data, 80));
 
