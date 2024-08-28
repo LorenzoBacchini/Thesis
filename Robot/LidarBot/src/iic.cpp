@@ -79,6 +79,7 @@ void I2C::master_init()
     conf.scl_io_num = I2C_EXAMPLE_MASTER_SCL_IO;
     conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
     conf.master.clk_speed = I2C_EXAMPLE_MASTER_FREQ_HZ;
+    conf.clk_flags = 0;
     i2c_param_config(i2c_master_port, &conf);
     i2c_driver_install(i2c_master_port, conf.mode,
                        I2C_EXAMPLE_MASTER_RX_BUF_DISABLE,
@@ -93,6 +94,7 @@ void I2C::slave_init()
     conf_slave.sda_pullup_en = GPIO_PULLUP_ENABLE;
     conf_slave.scl_io_num = I2C_EXAMPLE_SLAVE_SCL_IO;
     conf_slave.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf_slave.clk_flags = 0;
     conf_slave.mode = I2C_MODE_SLAVE;
     conf_slave.slave.addr_10bit_en = 0;
     conf_slave.slave.slave_addr = ESP_SLAVE_ADDR;
