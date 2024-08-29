@@ -29,6 +29,8 @@ dependencies {
 
     implementation 'org.bytedeco:javacv-platform:1.5.10'
 
+    implementation 'org.java-websocket:Java-WebSocket:1.5.7'
+
     //implementation group: 'org.openpnp', name: 'opencv', version: '4.9.0-0'
 }
 
