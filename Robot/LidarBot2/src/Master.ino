@@ -8,17 +8,43 @@
 #include "X2driver.h"
 #include "lidarcar.h"
 #include "lock.h"
+#include "RobotServer.h"
 #define TFT_GREY 0x5AEB // New colour
 
 int state = 0;
 
-EspNowMaster espnow;
-HttpServer httpServer;
+//EspNowMaster espnow;
+//HttpServer httpServer;
 X2 lidar;
 LidarCar lidarcar;
 Preferences preferences;
+RobotServer robotServer = RobotServer("NETGEAR32", "quainttable730");
 
 extern const unsigned char gImage_4x4_0[];
+
+// Funzione di callback per gestire i messaggi HTTP
+void handleIncomingMessage(const String& message) {
+    Serial.println("Esecuzione comando ricevuto: " + message);
+    
+    // Qui puoi richiamare le funzioni che fanno muovere il robot  
+    if (message == "MOVE_FORWARD") {
+        // Chiama la funzione del .ino per far muovere il robot avanti
+        lidarcar.ControlWheel(0, 3, 0);
+    } else if (message == "MOVE_BACKWARD") {
+        // Chiama la funzione del .ino per far muovere il robot indietro
+        lidarcar.ControlWheel(0, -3, 0);
+    } else if (message == "TURN_LEFT") {
+        // Chiama la funzione del .ino per girare a sinistra
+        lidarcar.ControlWheel(-2, 0, 0);
+    } else if (message == "TURN_RIGHT") {
+        // Chiama la funzione del .ino per girare a destra
+        lidarcar.ControlWheel(2, 0, 0);
+    } else if (message == "STOP") {
+        // Chiama la funzione del .ino per fermare il robot
+        lidarcar.ControlWheel(0, 0, 0);
+    }
+    // Aggiungi altre condizioni per altre azioni
+}
 
 void setLcd() {
   M5.Lcd.clear(BLACK);
@@ -30,7 +56,7 @@ void setLcd() {
   M5.Lcd.drawCircle(160, 120 , 4, RED);
 }
 
-void printPeerList() {
+/*void printPeerList() {
   setLcd();
   M5.Lcd.setCursor(0, 50);
   M5.Lcd.printf("slave list:\r\n");
@@ -46,9 +72,9 @@ void printPeerList() {
     M5.Lcd.println(macStr);
     M5.Lcd.println();
   }
-}
+}*/
 
-void readAddressFromRom(){
+/*void readAddressFromRom(){
   esp_now_peer_info_t slave_set;
   uint8_t get_len = sizeof(esp_now_peer_info_t);
   if(preferences.getBytes("mac_addr1", &slave_set, get_len) == get_len)
@@ -56,7 +82,7 @@ void readAddressFromRom(){
     Serial.printf("<<<<<<<--->>>>>>> \r\n");
     espnow.confirmPeer(slave_set);
   }
-}
+}*/
 
 
 
@@ -86,7 +112,7 @@ void disPlay(void) {
   }
 }
 
-void sendMap() {
+/*void sendMap() {
 //   ScanForSlave();
 
     // If Slave is found, it would be populate in `slave` variable
@@ -114,26 +140,26 @@ void sendMap() {
   else {
     // No slave found to process
   }
-}
+}*/
 
 int lastCount = 0;
 static void dis_task(void *arg) {
   Serial.printf("uart_task\r\n");
   while(1) {
-    if (espnow.isConnected == true) {
+    //if (espnow.isConnected == true) {
       if (lidar.disPlayFlag){
-        sendMap();
+        //sendMap();
         disPlay();
         delay(5); 
         lidar.disPlayFlag = 0;
       }
-    } else {
-      Serial.printf("peer count: %d\r\n", espnow.peerlist.count);
+    //} else {
+      /*Serial.printf("peer count: %d\r\n", espnow.peerlist.count);
       if (espnow.peerlist.count > lastCount) {
         printPeerList();     
         lastCount = espnow.peerlist.count;
-      }
-    }
+      }*/
+    //}
     
     delay(10);
   }
@@ -193,27 +219,30 @@ void setup() {
   setLcd();
   //Serial.printf("got crc %x\r\n", cover_crc(msg_data, data, 80));
 
-  espnow.Init();
+  //espnow.Init();
   preferences.begin("lidarBot", false);
 
   if (!M5.BtnC.isPressed()){
-    readAddressFromRom();
+   // readAddressFromRom();
   } 
   
-  httpServer.init();
-  
-
-  espnow.setRecvCallBack(&OnDataRecv);
+  //httpServer.init();
+  robotServer.init();
+  // Imposta il callback che verrà chiamato quando arriva un messaggio
+  robotServer.setMessageCallback(handleIncomingMessage);
+  Serial.println("RobotServer init done\n");
+  //espnow.setRecvCallBack(&OnDataRecv);
   // espnow.setSendCallBack(&OnDataSent);
-  xTaskCreatePinnedToCore(dis_task, "lidar", 10 * 1024, NULL, 1, NULL, 1); 
+  xTaskCreatePinnedToCore(dis_task, "lidar", 10 * 1024, NULL, 1, NULL, 1);
 }
 
 void loop() {
   M5.update();
-  espnow.Broadcast();
+  robotServer.handleClient();
+  //espnow.Broadcast();
 
-  if (M5.BtnB.wasPressed()) {
-		espnow.confirmPeer(espnow.peerlist.list[choice]);	
+  /*if (M5.BtnB.wasPressed()) {
+		//espnow.confirmPeer(espnow.peerlist.list[choice]);	
     preferences.putBytes("mac_addr1", &espnow.peerlist.list[choice], sizeof(esp_now_peer_info_t));
     setLcd();
     delay(100);
@@ -237,7 +266,7 @@ void loop() {
 		  printPeerList();
 		  M5.Lcd.fillCircle(220, choice*15 + 80, 3, RED);
     }
-  }
+  }*/
 	
 
   while (Serial1.available()) {
