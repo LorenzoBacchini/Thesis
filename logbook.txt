@@ -362,3 +362,25 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
 27/08/24
 - continuo analisi funzioni lidar
 - ho ricreato il progetto di platformIO perche avevo fatto alcuni danni ora e anche pushato sulla repo nella sua versione base e funzionante
+
+28/08/24
+- sto cercando di sistemare lo scambio dati sul protocollo i2c che pare non funzionare, ho visto che l'indirizzo corretto e 0x75 attraverso uno scanner
+- mi sono accorto che io sono in possesso del lidarBot2 e provando ad utilizzare il codice per il LidarBot-X2 sembra funzionare meglio, 
+    quindi ho creato un nuovo progetto di platformIO per fare alcune prove e almeno il lidar sembra andare
+- ho scaricato anche sul telecomando il codice del lidarbot-X2 e adesso ho  solo una modalità di movimento "remote" che però visualizza sia 
+    sul telecomando che sul robot i dati del Lidar, procedo con alcuni test per l'applicazione di visione artificiale, velocità del robot, luce
+    necessaria ecc...
+- provo a far comunicare il codice java con il robot
+- sono riuscito a creare un piccolo codice lato esp32 e lato java che permette di assumere il ruolo di server al robot e il ruolo di client al programma
+    java, così da poter scambare i dati tra i due (in questo modo posso far inviare i dati da java a esp32 per comandare il robot)
+- attento perchè nella classe espHttpServer viene avviato il wifi come ap (access point) potrebbe quindi creare problemi con quello che voglio fare io
+
+29/08/24
+- ho fatto alcuni test con http e espnow entrambi accesi ma l'http da in qualche modo fastidio all'espnow e quindi non gli permette di funzionare
+    correttamente, per il momento quindi commentero le parti relative all'espnow dato che mi serve testare la comunicazione http java-esp
+- sono risuscito a capire che i motori sono in questo ordine: sinistro anteriore A, destro anteriore B, sinistro posteriore C, destro posteriore D
+- ho continuato con alcuni test, il tutto sembra funzionare anche se non mi è molto chiaro perchè ma a volte se giro il robot a sinistra (o a destra)
+    per un dato lasso di tempo ad una data intensità il risultato è leggermente diverso e quindi e difficile far ruotare il robot di angoli predefiniti
+    in maniera precisa
+- ho anche capito che la funzione ControlWheel di lidarcar funziona così: 
+    X > 0 gira a destra, X < 0 gira a sinistra, Y > 0 vai avanti, Y < 0 vai indietro 
