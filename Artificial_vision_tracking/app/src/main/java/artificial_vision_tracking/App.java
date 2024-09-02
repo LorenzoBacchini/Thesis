@@ -6,6 +6,7 @@ package artificial_vision_tracking;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.opencv.opencv_java;
+import org.opencv.videoio.VideoCapture;
 import org.opencv.objdetect.Dictionary;
 import org.opencv.objdetect.Objdetect;
 import org.opencv.core.Mat;
@@ -27,7 +28,6 @@ public class App {
         final int markersY = 8; // Numero di marker sull'asse Y
         final float markerLength = 0.07f; // Lunghezza del marker (in metri)
         final String directoryPath = "..\\..\\python\\images\\";
-        //final float markerSeparation = 0.007f; // Distanza tra i marker (in metri)
         final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
         final int selectedCamera = 1;
 
@@ -43,19 +43,19 @@ public class App {
 
         cameraMatrix = new Mat(3, 3, org.opencv.core.CvType.CV_64F);
         double[] data = {
-            1339.572282371255, 0, 942.2153746376233,
-            0, 1337.74718206229, 581.1480012090642,
+            1340.821804232236, 0, 945.5377637384079,
+            0, 1339.251046705548, 581.4177912549047,
             0, 0, 1
         };
         cameraMatrix.put(0, 0, data);
 
         distCoeffs = new Mat(1, 5, org.opencv.core.CvType.CV_64F);
         double[] data2 = {
-            -0.3857984048205869,
-            0.06915335453979676,
-            -0.0002579661191431792,
-            -0.0004055500912263875,
-            0.1276107988945717
+            -0.3898373600798533,
+            0.08115247413122996,
+            -1.965974706520358e-05,
+            -0.0006330161088470909,
+            0.1140937797457088
         };
 
         distCoeffs.put(0, 0, data2);
@@ -65,12 +65,23 @@ public class App {
         */
         
         
+        CameraPose cp = new CameraPose(cameraParam.get(0), cameraParam.get(1), markerLength, dictionary, selectedCamera);
+        cp.calcPose();
 
-        CameraPose.calcPose(cameraParam.get(0), cameraParam.get(1), markerLength, dictionary, selectedCamera);
-        //MarkersDetector md = new MarkersDetector();
-        //md.detect(dictionary, selectedCamera);
-        //QrDetector qrDetector = new QrDetector();
-        //qrDetector.detect();
-    
+        //Test to calculate the pose of a single frame
+        /*VideoCapture capture = cp.getCamera();
+        long startTime = System.currentTimeMillis(); 
+        int i = 0;
+        //A FRAME LIMITER MAY BE REQUIRED (not sure about this)
+        while(i < 100){
+            System.out.println("\n" + cp.calcSinglePose(capture)[0].dump() + "\n");
+            i++;
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Avg frame time: " + (endTime - startTime) / i + "ms");
+        */
+
+        //Test of the RobotScreenSaver
+        //RobotScreenSaver.screenSaver(cameraParam.get(0), cameraParam.get(1), markerLength, dictionary, selectedCamera);
     }
 }
