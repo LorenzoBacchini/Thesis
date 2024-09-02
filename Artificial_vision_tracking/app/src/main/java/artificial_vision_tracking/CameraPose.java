@@ -34,7 +34,6 @@ public class CameraPose {
 
     private Mat cameraMatrix; 
     private Mat distCoeffs;
-
     private float markerLength;
     private Dictionary dictionary; 
     private int selectedcamera;
@@ -136,7 +135,7 @@ public class CameraPose {
         }
 
         //Setting the camera exposure to reduce the motion blur
-        capture.set(Videoio.CAP_PROP_EXPOSURE, -6);
+        capture.set(Videoio.CAP_PROP_EXPOSURE, -7);
 
         //Getting the frame rate
         System.out.println("Frame rate: " + capture.get(Videoio.CAP_PROP_FPS));
@@ -185,6 +184,251 @@ public class CameraPose {
         return canvas;
     }
 
+    /**
+     * Calculate the pose for a single frame
+     * the param capture is used to not reopen every time the Videocapture because
+     * it cost a lot in terms of time and resources and slow down the pose process
+     * @param capture
+     * @return Mat of tvec and tvec
+     */
+    public Mat[] calcSinglePose(VideoCapture capture) {
+        double totalReprojectionError = 0;
+        int markerCount = 0;
+
+        //Getting the ArucoDetector
+        ArucoDetector arucoDetector = getArucoDetector();
+
+        //Create the object points of the marker
+        MatOfPoint3f objPoints = new MatOfPoint3f(
+            new Point3(0, 0, 0),
+            new Point3(markerLength, 0, 0),
+            new Point3(markerLength, markerLength, 0),
+            new Point3(0, markerLength, 0)
+        );
+
+        Mat frame = new Mat();
+
+        //Getting the frame
+        capture.read(frame);
+        if (frame.empty()) {
+            return null;
+        }
+
+        //Resize the frame to speed up the marker detection
+        Mat reducedFrame = new Mat();
+        Imgproc.resize(frame, reducedFrame, new Size(frame.width() / SCALE, frame.height() / SCALE));
+        
+        //Convert the frame to gray in order to detect the markers
+        Mat gray = new Mat();
+        Imgproc.cvtColor(reducedFrame, gray, Imgproc.COLOR_BGR2GRAY);
+
+        //Corners and ids of the detected markers
+        List<Mat> corners = new ArrayList<>();
+        Mat ids = new Mat();
+
+        //Mat to store the rotation and translation vectors of all the markers
+        Mat rvecs = new Mat();
+        Mat tvecs = new Mat();
+
+        //Detecting the markers
+        arucoDetector.detectMarkers(gray, corners, ids);
+        if (!corners.isEmpty()) {
+            rescalePoints(corners);
+        }
+
+        //Pose estimation
+        if (!ids.empty()) {
+            //Convert ID Mat to int array
+            int[] idArray = new int[(int) ids.total()];
+            ids.get(0, 0, idArray);
+
+            //Starting the pose estimation
+            for (int i = 0; i < idArray.length; i++) {
+                //Select the current marker corner
+                Mat cornerMat = corners.get(i).clone();
+                ArrayList<double[]> cornerData = new ArrayList<>();
+                //Extract the four corner points of the marker
+                for (int h = 0; h < 4; h++) {
+                    cornerData.add(cornerMat.get(0, h));
+                }
+
+                //Save the corner points of the marker in an array
+                Point[] cornerPointsArray = new Point[4];
+                for (int j = 0; j < cornerData.size(); j ++) {
+                    double[] data = cornerData.get(j);
+                    cornerPointsArray[j] = new Point(data[0], data[1]);
+                }
+
+                //Create MatOfPoint2f mat with the corner points of the marker
+                MatOfPoint2f cornerPoints = new MatOfPoint2f();
+                cornerPoints.fromArray(cornerPointsArray);
+
+                //Mat to store the rotation and translation vectors
+                Mat rvec = new Mat();
+                Mat tvec = new Mat();
+
+                //Pose estimation using solvePnP
+                if (cornerPoints.rows() >= 4) {
+                    Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, false, Calib3d.SOLVEPNP_ITERATIVE);
+
+                    rvecs.push_back(rvec);
+                    tvecs.push_back(tvec);
+                    // Calculate reprojection error
+                    double reprojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec);
+                    totalReprojectionError += reprojectionError * reprojectionError;
+                    markerCount += cornerPoints.total();
+                }
+
+                //Mats cleanup
+                cornerPoints.release();
+                cornerMat.release();
+            }
+            
+            ids.release();
+            corners.clear();
+        }
+
+        //Mats cleanup
+        gray.release();
+        reducedFrame.release();
+        frame.release();
+        frame.release();
+
+        if (markerCount > 0) {
+            double avgReprojectionError = Math.sqrt(totalReprojectionError / markerCount);
+            System.out.printf("Average reprojection error: %.2f%n", avgReprojectionError);
+        }
+        converterToMat.close();
+
+        return new Mat[] {tvecs, rvecs};
+    }
+
+
+    /**
+     * Calculate the pose for a single frame
+     * very slow because of the opening of the Videocapture every call
+     * @return Mat of tvec and tvec
+     */
+    public Mat[] calcSinglePose() {
+        double totalReprojectionError = 0;
+        int markerCount = 0;
+
+        //Getting the ArucoDetector
+        ArucoDetector arucoDetector = getArucoDetector();
+        
+        //Getting the camera
+        VideoCapture capture = getCamera();
+
+        //Create the object points of the marker
+        MatOfPoint3f objPoints = new MatOfPoint3f(
+            new Point3(0, 0, 0),
+            new Point3(markerLength, 0, 0),
+            new Point3(markerLength, markerLength, 0),
+            new Point3(0, markerLength, 0)
+        );
+
+        Mat frame = new Mat();
+
+        //Getting the frame
+        capture.read(frame);
+        if (frame.empty()) {
+            return null;
+        }
+
+        //Resize the frame to speed up the marker detection
+        Mat reducedFrame = new Mat();
+        Imgproc.resize(frame, reducedFrame, new Size(frame.width() / SCALE, frame.height() / SCALE));
+        
+        //Convert the frame to gray in order to detect the markers
+        Mat gray = new Mat();
+        Imgproc.cvtColor(reducedFrame, gray, Imgproc.COLOR_BGR2GRAY);
+
+        //Corners and ids of the detected markers
+        List<Mat> corners = new ArrayList<>();
+        Mat ids = new Mat();
+
+        //Mat to store the rotation and translation vectors of all the markers
+        Mat rvecs = new Mat();
+        Mat tvecs = new Mat();
+
+        //Detecting the markers
+        arucoDetector.detectMarkers(gray, corners, ids);
+        if (!corners.isEmpty()) {
+            rescalePoints(corners);
+        }
+
+        //Pose estimation
+        if (!ids.empty()) {
+            //Convert ID Mat to int array
+            int[] idArray = new int[(int) ids.total()];
+            ids.get(0, 0, idArray);
+
+            //Starting the pose estimation
+            for (int i = 0; i < idArray.length; i++) {
+                //Select the current marker corner
+                Mat cornerMat = corners.get(i).clone();
+                ArrayList<double[]> cornerData = new ArrayList<>();
+                //Extract the four corner points of the marker
+                for (int h = 0; h < 4; h++) {
+                    cornerData.add(cornerMat.get(0, h));
+                }
+
+                //Save the corner points of the marker in an array
+                Point[] cornerPointsArray = new Point[4];
+                for (int j = 0; j < cornerData.size(); j ++) {
+                    double[] data = cornerData.get(j);
+                    cornerPointsArray[j] = new Point(data[0], data[1]);
+                }
+
+                //Create MatOfPoint2f mat with the corner points of the marker
+                MatOfPoint2f cornerPoints = new MatOfPoint2f();
+                cornerPoints.fromArray(cornerPointsArray);
+
+                //Mat to store the rotation and translation vectors
+                Mat rvec = new Mat();
+                Mat tvec = new Mat();
+
+                //Pose estimation using solvePnP
+                if (cornerPoints.rows() >= 4) {
+                    Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, false, Calib3d.SOLVEPNP_ITERATIVE);
+
+                    rvecs.push_back(rvec);
+                    tvecs.push_back(tvec);
+                    // Calculate reprojection error
+                    double reprojectionError = calculateReprojectionError(objPoints, cornerPoints, rvec, tvec);
+                    totalReprojectionError += reprojectionError * reprojectionError;
+                    markerCount += cornerPoints.total();
+                }
+
+                //Mats cleanup
+                cornerPoints.release();
+                cornerMat.release();
+            }
+            
+            ids.release();
+            corners.clear();
+        }
+
+        //Mats cleanup
+        gray.release();
+        reducedFrame.release();
+        frame.release();
+        frame.release();
+
+        if (markerCount > 0) {
+            double avgReprojectionError = Math.sqrt(totalReprojectionError / markerCount);
+            System.out.printf("Average reprojection error: %.2f%n", avgReprojectionError);
+        }
+        capture.release();
+        converterToMat.close();
+
+        return new Mat[] {tvecs, rvecs};
+    }
+
+
+    /**
+     * Calculate the pose continously showing the result on a canvas
+     */
     public void calcPose() {        
         long startTime = 0;
         int totalFrames = 0;
