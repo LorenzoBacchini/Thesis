@@ -384,3 +384,25 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
     in maniera precisa
 - ho anche capito che la funzione ControlWheel di lidarcar funziona così: 
     X > 0 gira a destra, X < 0 gira a sinistra, Y > 0 vai avanti, Y < 0 vai indietro 
+- ho iniziato a scriver la classe RobotScreenSaver che si occupera di calcolare la posa dei marker (codice copiato da CameraPose), dopodichè stabilirà
+    una sorta di perimetro fatto dai marker (1,2,3,4) e permettera al robot (indicato con marker 0) di muoversi all'interno di tale perimetro un po'
+    come se fosse lo screen saver di windows
+- sono riuscito a far muovere e far controllare al robot lo spazio che lo circonda anche se ancora non funziona benissimo e alcune volte si gira male
+
+30/08/24
+- ho continuato con i test per il RobotScreenSaver e sono riuscito a farlo andare più o meno, sono sorti alcuni problemi:
+    innanzitutto il marker 0, quello usato per il robot è 5mm più grande rispetto agli altri (75mm - 70mm) inoltre essendo posizionato sul robot è anche più
+    in alto, questo fa si che il marker 0 risulti più vicino alla camera rispetto ai marker degli angoli del perimetro e questo alcune volte causa un
+    comportamento anomalo nel robot che prosegue per qualche cm in più verso il bordo prima di girare oltrepassando i marker sul pavimento.
+- ho provato a risolvere il problema che faceva si che il robot una volta raggiunto un bordo continuasse a ruotare su se stesso non riuscendo
+    più a tornare all'interno del perimetro semplicemente facendolo muovere avanti per circa 1secondo subito dopo averlo fatto girare, 
+    non ho avuto modo di provare approfonditamente questa modifica anche se sembrava funzionare perchè si sono scaricate le batterie del robot
+    e non si caricano correttamente
+- appena avrai risolto devi provare a sistemare il codice (uniformando dove c'è da girare a sinistra e dove a destra) cosi da ridurre gli else if
+    e dovrai anche dare una sistemata al codice per fare si che sia più snello e non la copia carbone del codice di CameraPose
+
+31/08/24
+- ho diviso il codice di CameraPose.calcPose() in più funzioni per rendere il codice più leggibile e riutilizzabile, inoltre ho creato
+    altre due funzioni per ottenere la posa della camera di un singolo frame e ritornare le coordinate dei marker, un metodo richiede che gli sia passata
+    la camera dalla quale ottenere le immagini (metodo più veloce), l'altro invece crea tutto al suo interno ogni volta (più lento infatti ogni volta per
+    aprire la camera impiega circa 2-3 secondi)
