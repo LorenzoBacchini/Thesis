@@ -28,6 +28,27 @@ import org.opencv.videoio.Videoio;
 public class CameraPose {
     private static boolean running = true;
 
+    //Costants for the ArucoDetector
+    private static final int ADAPTIVE_THRESH_WIN_SIZE_MIN = 3;
+    private static final int ADAPTIVE_THRESH_WIN_SIZE_MAX = 23;
+    private static final int ADAPTIVE_THRESH_WIN_SIZE_STEP = 10;
+    private static final int ADAPTIVE_THRESH_CONSTANT = 7;
+    private static final int MARKER_BORDER_BITS = 1;
+    private static final int PERSPECTIVE_REMOVE_PIXEL_PER_CELL = 16;
+    private static final double PERSPECTIVE_REMOVE_IGNORED_MARGIN_PER_CELL = 0.1;
+
+    //Costants for the camera
+    private static final int CAMERA_EXPORSURE = -5;
+
+    //Costants for the calcPose methods
+    private static final int CORNER_NUMBER = 4;
+    private static final int SECOND_IN_MILLIS = 1000;
+
+    //Costants for the drawAxes method
+    private static final int X_NEGATIVE_DELTA = -50;
+    private static final int Y_POSITIVE_DELTA = 75;
+    private static final int Y_NEGATIVE_DELTA = -15;
+
     //Parameter to scale the frame size to speed up the marker detection
     private static final int SCALE = 2;
     private static final int SCALE_CANVAS = 2;
@@ -94,16 +115,16 @@ public class CameraPose {
         //Setting the detector parameters
         DetectorParameters parameters = new DetectorParameters();
         //parameters to detect the markers with different thresholds
-        parameters.set_adaptiveThreshWinSizeMin(3);
-        parameters.set_adaptiveThreshWinSizeMax(23);
-        parameters.set_adaptiveThreshWinSizeStep(10);
-        parameters.set_adaptiveThreshConstant(7);
+        parameters.set_adaptiveThreshWinSizeMin(ADAPTIVE_THRESH_WIN_SIZE_MIN);
+        parameters.set_adaptiveThreshWinSizeMax(ADAPTIVE_THRESH_WIN_SIZE_MAX);
+        parameters.set_adaptiveThreshWinSizeStep(ADAPTIVE_THRESH_WIN_SIZE_STEP);
+        parameters.set_adaptiveThreshConstant(ADAPTIVE_THRESH_CONSTANT);
         //parameter to set the size of the black border around the marker
-        parameters.set_markerBorderBits(1);
+        parameters.set_markerBorderBits(MARKER_BORDER_BITS);
         //Augmented pixel per cell (reduce if the performance is too low)
-        parameters.set_perspectiveRemovePixelPerCell(16);
+        parameters.set_perspectiveRemovePixelPerCell(PERSPECTIVE_REMOVE_PIXEL_PER_CELL);
         //Margin of pixels to remove from the final image (0.1 is 10%)
-        parameters.set_perspectiveRemoveIgnoredMarginPerCell(0.1);
+        parameters.set_perspectiveRemoveIgnoredMarginPerCell(PERSPECTIVE_REMOVE_IGNORED_MARGIN_PER_CELL);
         arucoDetector.setDetectorParameters(parameters);
 
         return arucoDetector;
@@ -135,7 +156,7 @@ public class CameraPose {
         }
 
         //Setting the camera exposure to reduce the motion blur
-        capture.set(Videoio.CAP_PROP_EXPOSURE, -7);
+        capture.set(Videoio.CAP_PROP_EXPOSURE, CAMERA_EXPORSURE);
 
         //Getting the frame rate
         System.out.println("Frame rate: " + capture.get(Videoio.CAP_PROP_FPS));
@@ -248,12 +269,12 @@ public class CameraPose {
                 Mat cornerMat = corners.get(i).clone();
                 ArrayList<double[]> cornerData = new ArrayList<>();
                 //Extract the four corner points of the marker
-                for (int h = 0; h < 4; h++) {
+                for (int h = 0; h < CORNER_NUMBER; h++) {
                     cornerData.add(cornerMat.get(0, h));
                 }
 
                 //Save the corner points of the marker in an array
-                Point[] cornerPointsArray = new Point[4];
+                Point[] cornerPointsArray = new Point[CORNER_NUMBER];
                 for (int j = 0; j < cornerData.size(); j ++) {
                     double[] data = cornerData.get(j);
                     cornerPointsArray[j] = new Point(data[0], data[1]);
@@ -268,7 +289,7 @@ public class CameraPose {
                 Mat tvec = new Mat();
 
                 //Pose estimation using solvePnP
-                if (cornerPoints.rows() >= 4) {
+                if (cornerPoints.rows() >= CORNER_NUMBER) {
                     Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, false, Calib3d.SOLVEPNP_ITERATIVE);
 
                     rvecs.push_back(rvec);
@@ -369,12 +390,12 @@ public class CameraPose {
                 Mat cornerMat = corners.get(i).clone();
                 ArrayList<double[]> cornerData = new ArrayList<>();
                 //Extract the four corner points of the marker
-                for (int h = 0; h < 4; h++) {
+                for (int h = 0; h < CORNER_NUMBER; h++) {
                     cornerData.add(cornerMat.get(0, h));
                 }
 
                 //Save the corner points of the marker in an array
-                Point[] cornerPointsArray = new Point[4];
+                Point[] cornerPointsArray = new Point[CORNER_NUMBER];
                 for (int j = 0; j < cornerData.size(); j ++) {
                     double[] data = cornerData.get(j);
                     cornerPointsArray[j] = new Point(data[0], data[1]);
@@ -389,7 +410,7 @@ public class CameraPose {
                 Mat tvec = new Mat();
 
                 //Pose estimation using solvePnP
-                if (cornerPoints.rows() >= 4) {
+                if (cornerPoints.rows() >= CORNER_NUMBER) {
                     Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, false, Calib3d.SOLVEPNP_ITERATIVE);
 
                     rvecs.push_back(rvec);
@@ -442,7 +463,7 @@ public class CameraPose {
         //Getting the camera
         VideoCapture capture = getCamera();
 
-        long frameDuration = (long) (1000 / capture.get(Videoio.CAP_PROP_FPS));
+        long frameDuration = (long) (SECOND_IN_MILLIS / capture.get(Videoio.CAP_PROP_FPS));
     
         //Create the object points of the marker
         MatOfPoint3f objPoints = new MatOfPoint3f(
@@ -529,12 +550,12 @@ public class CameraPose {
                     Mat cornerMat = corners.get(i).clone();
                     ArrayList<double[]> cornerData = new ArrayList<>();
                     //Extract the four corner points of the marker
-                    for (int h = 0; h < 4; h++) {
+                    for (int h = 0; h < CORNER_NUMBER; h++) {
                         cornerData.add(cornerMat.get(0, h));
                     }
 
                     //Save the corner points of the marker in an array
-                    Point[] cornerPointsArray = new Point[4];
+                    Point[] cornerPointsArray = new Point[CORNER_NUMBER];
                     for (int j = 0; j < cornerData.size(); j ++) {
                         double[] data = cornerData.get(j);
                         cornerPointsArray[j] = new Point(data[0], data[1]);
@@ -549,7 +570,7 @@ public class CameraPose {
                     Mat tvec = new Mat();
 
                     //Pose estimation using solvePnP
-                    if (cornerPoints.rows() >= 4) {
+                    if (cornerPoints.rows() >= CORNER_NUMBER) {
                         Calib3d.solvePnP(objPoints, cornerPoints, cameraMatrix, new MatOfDouble(distCoeffs), rvec, tvec, false, Calib3d.SOLVEPNP_ITERATIVE);
 
                         // Calculating distance from camera
@@ -622,7 +643,7 @@ public class CameraPose {
 
 
     /**
-     * Method to draw the axes of the marker an the position of the marker
+     * Method to draw the axes of the marker and the position of the marker
      * !IMPORTANT this method takes a lot of time to be executed so use it only for debugging  
      * @param image
      * @param rvec
@@ -647,10 +668,10 @@ public class CameraPose {
         Imgproc.line(image, pts[0], pts[3], new Scalar(255, 0, 0), 2); // Z axis in blue 
 
         // Draw the text for the tvec and rvec
-        String tvecText = String.format("tvec: [%.2f, %.2f, %.2f]", tvec.get(0, 0)[0], tvec.get(1, 0)[0], tvec.get(2, 0)[0]);
-        String rvecText = String.format("rvec: [%.2f, %.2f, %.2f]", (rvec.get(0, 0)[0] * 180) / Math.PI, (rvec.get(1, 0)[0] * 180) / Math.PI, (rvec.get(2, 0)[0] * 180) / Math.PI);
-        Point tvectextPos = new Point(pts[0].x -50, pts[0].y - 15); // Put the text on the top of the marker
-        Point rvectextPos = new Point(pts[0].x -50, pts[0].y + 75); // Put the text on the bottom of the marker
+        String tvecText = String.format("x: %.2f  y: %.2f  z: %.2f", tvec.get(0, 0)[0], tvec.get(1, 0)[0], tvec.get(2, 0)[0]);
+        String rvecText = String.format("z rotation: %.2f", (rvec.get(2, 0)[0] * 180) / Math.PI);
+        Point tvectextPos = new Point(pts[0].x + X_NEGATIVE_DELTA, pts[0].y + Y_NEGATIVE_DELTA); // Put the text on the top of the marker
+        Point rvectextPos = new Point(pts[0].x + X_NEGATIVE_DELTA, pts[0].y + Y_POSITIVE_DELTA); // Put the text on the bottom of the marker
         Imgproc.putText(image, tvecText, tvectextPos, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255, 255, 255), 2, Imgproc.LINE_AA);
         Imgproc.putText(image, rvecText, rvectextPos, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255, 255, 255), 2, Imgproc.LINE_AA);
         
@@ -682,7 +703,7 @@ public class CameraPose {
      * Method to rescale the points 
      * !IMPORTANT 
      *  if you resize the image before the detection 
-     *  than you need to call this method to rescale the points
+     *  then you need to call this method to rescale the points
      *  detected by the marker detection to the right size
      *  otherwise the pose estimation will not work as expected
      * !IMPORTANT
@@ -690,7 +711,7 @@ public class CameraPose {
      */
     private static void rescalePoints(List<Mat> corners) {
         for (Mat corner : corners) {
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < CORNER_NUMBER; i++) {
                 double[] data = corner.get(0, i);
                 data[0] *= SCALE;
                 data[1] *= SCALE;
