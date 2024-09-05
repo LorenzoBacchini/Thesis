@@ -3,6 +3,7 @@
  */
 package artificial_vision_tracking;
 
+import org.bytedeco.artoolkitplus.Camera;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.opencv.opencv_java;
@@ -16,9 +17,6 @@ import java.util.List;
 
 
 public class App {
-    /*static {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-    }*/
     static {
         // Carica le librerie native di OpenCV
         Loader.load(opencv_java.class);
@@ -30,10 +28,16 @@ public class App {
         final String directoryPath = "..\\..\\python\\images\\";
         final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
         final int selectedCamera = 1;
+        final int markerSheetMarkersX = 8; // Numero di marker sull'asse X
+        final int markerSheetMarkersY = 10; // Numero di marker sull'asse Y
+        final int markerSheetMarkerLength = 50; // Lunghezza del marker (in pixel)
+        final int markerSheetMarkerSeparation = 10; // Separazione tra i marker (in pixel)
+        final String fileName = "markersSheet";
 
-        //GenerateMarkersSheet gms = new GenerateMarkersSheet();
+        //GenerateMarkersSheet gms = new GenerateMarkersSheet(markerSheetMarkersX, markerSheetMarkersY, markerSheetMarkerLength, markerSheetMarkerSeparation, dictionary, fileName);
         //gms.generateMarkersSheet();
-        List<Mat> cameraParam = CameraCalibrator.calibration(markersX, markersY, directoryPath);
+        CameraCalibrator cc = new CameraCalibrator(markersX, markersY, directoryPath);
+        List<Mat> cameraParam = cc.calibration();
         
         
         
