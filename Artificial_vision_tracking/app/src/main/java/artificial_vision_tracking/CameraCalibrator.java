@@ -23,8 +23,25 @@ public class CameraCalibrator {
     private static final int CAMERA_MATRIX_COLUMNS = 3;
     private static final int DIST_COEFFS_ROWS = 8;
     private static final int DIST_COEFFS_COLUMNS = 1;
-    
-    public static List<Mat> calibration(int boardWidth, int boardHeight, String directoryPath) {
+
+    private int boardWidth;
+    private int boardHeight;
+    private String directoryPath;
+
+    public CameraCalibrator(int boardWidth, int boardHeight, String directoryPath) {
+        this.boardWidth = boardWidth;
+        this.boardHeight = boardHeight;
+        this.directoryPath = directoryPath;
+    }
+
+    /**
+     * Method to calculate the calibration of the camera given a set of images
+     * @param boardWidth width of the chessboard (in number of squares)
+     * @param boardHeight height of the chessboard (in number of squares)
+     * @param directoryPath path where the chessboard images are located
+     * @return a collection of cameraMatrix and distCoeffs
+     */
+    public List<Mat> calibration() {
         Size boardSize = new Size(boardWidth, boardHeight);
 
         List<Mat> objectPoints = new ArrayList<>();
@@ -38,39 +55,47 @@ public class CameraCalibrator {
             }
         }
 
+        //Scrolling through each image in the given path 
         for (String filePath : imageFiles) {
             System.out.println("Processing " + filePath);
             Mat image = Imgcodecs.imread(filePath);
             Mat grayImage = new Mat();
+            //Converting to a gray scale image to reduce computational complexity
             Imgproc.cvtColor(image, grayImage, Imgproc.COLOR_BGR2GRAY);
 
             MatOfPoint2f imageCorners = new MatOfPoint2f();
-            //boolean found = Calib3d.findChessboardCorners(grayImage, boardSize, Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE + Calib3d.CALIB_CB_FAST_CHECK);
+            //Scanning the image to extract the corners
             boolean found = Calib3d.findChessboardCorners(grayImage, boardSize, imageCorners);
 
+            //finishing the corners with the cornerSubPix method
             if (found) {
                 Imgproc.cornerSubPix(grayImage, imageCorners, new Size(WIN_X_SIZE, WIN_Y_SIZE), new Size(ZERO_X_ZONE, ZERO_Y_ZONE),
                         new TermCriteria(TermCriteria.EPS + TermCriteria.COUNT, MAX_ITERATION, ACCURACY));
 
                 imagePoints.add(imageCorners);
                 objectPoints.add(objectPoint);
-                Calib3d.drawChessboardCorners(image, boardSize, imageCorners, found);
+                //methods to draw a pattern on the image if the chessboard is recognized and then save the new image 
+                //Calib3d.drawChessboardCorners(image, boardSize, imageCorners, found);
                 //Imgcodecs.imwrite("output_" + new File(filePath).getName(), image);
             }
         }
 
+        //Creating the two calibration matrix
         Mat cameraMatrix = Mat.eye(CAMERA_MATRIX_ROWS, CAMERA_MATRIX_COLUMNS, CvType.CV_64F);
         Mat distCoeffs = Mat.zeros(DIST_COEFFS_ROWS, DIST_COEFFS_COLUMNS, CvType.CV_64F);
+        //Collections to calculate the reprojection error
         List<Mat> rvecs = new ArrayList<>();
         List<Mat> tvecs = new ArrayList<>();
 
+        //calibration of the camera
         double rms = Calib3d.calibrateCamera(objectPoints, imagePoints, boardSize, cameraMatrix, distCoeffs, rvecs, tvecs);
 
+        //Printing of the result obtained
         System.out.println("RMS error: " + rms);
         System.out.println("Camera Matrix: \n" + cameraMatrix.dump());
         System.out.println("Distortion Coefficients: \n" + distCoeffs.dump());
 
-        // Reprojection error calculation
+        //Reprojection error calculation
         double totalError = 0;
         double totalPoints = 0;
         for (int i = 0; i < objectPoints.size(); i++) {
@@ -88,6 +113,12 @@ public class CameraCalibrator {
         return List.of(cameraMatrix, distCoeffs);
     }
 
+
+    /**
+     * Method for getting a list of images at a specified path
+     * @param directoryPath
+     * @return the list of the absolute path of each image
+     */
     private static List<String> getImageFiles(String directoryPath) {
         File dir = new File(directoryPath);
         File[] files = dir.listFiles((dir1, name) -> name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".png"));
