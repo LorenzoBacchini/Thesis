@@ -10,7 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CameraCalibrator {
+    private static final float INITIAL_VALUE = 0.0f;
 
+    private static final int WIN_X_SIZE = 11;
+    private static final int WIN_Y_SIZE = 11;
+    private static final int ZERO_X_ZONE = -1;
+    private static final int ZERO_Y_ZONE = -1;
+    private static final int MAX_ITERATION = 30;
+    private static final double ACCURACY = 0.001;
+
+    private static final int CAMERA_MATRIX_ROWS = 3;
+    private static final int CAMERA_MATRIX_COLUMNS = 3;
+    private static final int DIST_COEFFS_ROWS = 8;
+    private static final int DIST_COEFFS_COLUMNS = 1;
+    
     public static List<Mat> calibration(int boardWidth, int boardHeight, String directoryPath) {
         Size boardSize = new Size(boardWidth, boardHeight);
 
@@ -21,7 +34,7 @@ public class CameraCalibrator {
         MatOfPoint3f objectPoint = new MatOfPoint3f();
         for (int i = 0; i < boardHeight; i++) {
             for (int j = 0; j < boardWidth; j++) {
-                objectPoint.push_back(new MatOfPoint3f(new Point3(j, i, 0.0f)));
+                objectPoint.push_back(new MatOfPoint3f(new Point3(j, i, INITIAL_VALUE)));
             }
         }
 
@@ -36,8 +49,8 @@ public class CameraCalibrator {
             boolean found = Calib3d.findChessboardCorners(grayImage, boardSize, imageCorners);
 
             if (found) {
-                Imgproc.cornerSubPix(grayImage, imageCorners, new Size(11, 11), new Size(-1, -1),
-                        new TermCriteria(TermCriteria.EPS + TermCriteria.COUNT, 30, 0.001));
+                Imgproc.cornerSubPix(grayImage, imageCorners, new Size(WIN_X_SIZE, WIN_Y_SIZE), new Size(ZERO_X_ZONE, ZERO_Y_ZONE),
+                        new TermCriteria(TermCriteria.EPS + TermCriteria.COUNT, MAX_ITERATION, ACCURACY));
 
                 imagePoints.add(imageCorners);
                 objectPoints.add(objectPoint);
@@ -46,8 +59,8 @@ public class CameraCalibrator {
             }
         }
 
-        Mat cameraMatrix = Mat.eye(3, 3, CvType.CV_64F);
-        Mat distCoeffs = Mat.zeros(8, 1, CvType.CV_64F);
+        Mat cameraMatrix = Mat.eye(CAMERA_MATRIX_ROWS, CAMERA_MATRIX_COLUMNS, CvType.CV_64F);
+        Mat distCoeffs = Mat.zeros(DIST_COEFFS_ROWS, DIST_COEFFS_COLUMNS, CvType.CV_64F);
         List<Mat> rvecs = new ArrayList<>();
         List<Mat> tvecs = new ArrayList<>();
 
