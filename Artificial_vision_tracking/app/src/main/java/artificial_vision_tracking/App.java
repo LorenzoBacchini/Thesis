@@ -25,7 +25,7 @@ public class App {
         final int markersX = 11; // Numero di marker sull'asse X
         final int markersY = 8; // Numero di marker sull'asse Y
         final float markerLength = 0.07f; // Lunghezza del marker (in metri)
-        final String directoryPath = "..\\..\\python\\images\\";
+        final String directoryPath = "..\\..\\calibration_images\\";
         final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
         final int selectedCamera = 1;
         final int markerSheetMarkersX = 8; // Numero di marker sull'asse X
