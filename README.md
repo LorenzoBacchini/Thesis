@@ -21,3 +21,11 @@ you can use the images in the aruco_markers folder to see the result
 
 > [!WARNING]
 > Make sure there is enough light in the scene otherwise the markers may not be detected
+
+
+## Robot
+In the robot folder there are three subfolder, one for the code of the basic LidarBot (LidarBot), one for the custom code of the LidarBot2 (Lidarbot2) that receive command only through http request, and one for the remote controller of the LidarBot2 (Remote)
+
+> [!IMPORTANT]
+> At the moment this folder is work in progress so LidarBot2 code may not work properly and Remote only work with a stock version of the LidarBot2 code, not with the code in the LidarBot2 folder.
+> If you want to make any change you can use vscode with PlatformIO extension to open the three subfolder
