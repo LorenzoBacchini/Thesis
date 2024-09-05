@@ -406,3 +406,21 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
     altre due funzioni per ottenere la posa della camera di un singolo frame e ritornare le coordinate dei marker, un metodo richiede che gli sia passata
     la camera dalla quale ottenere le immagini (metodo più veloce), l'altro invece crea tutto al suo interno ogni volta (più lento infatti ogni volta per
     aprire la camera impiega circa 2-3 secondi)
+
+02/09/24
+- pushato alcune modifiche per migliorare la leggibilità di CameraPose e aggiunti due metodi per calcolare la posa di un singolo frame
+
+04/09/24
+- incontro con Gianluca Aguzzi per discutere della tesi, più o meno ci siamo a livello di codice, resta solo da fare un po' di refactoring
+    per quanto riguarda magic numbers e organizzazione del codice, mentre dal punto di vista della tesi mi ha girato un template dal quale partire
+
+05/09/24
+- refactoring del codice utile, ho fatto il refactoring di App, CameraPose, CameraCalibrator e GenerateMarkerSheet, ho rimosso tutti i magic numbers e
+    aggiunto i commenti.
+- ho eliminato il codice python (ormai inutile dato che mi serviva solo a scopo di test prima di convertire il codice in java)
+- ho spostato tutte le cartelle utili dentro la cartella di python così da far funzionare il codice java ugualmente
+- ho ricreato il progetto seguendo le istruzioni di pianini e cioè utilizzando la guida fornita via mailche dice di creare il progetto gradle
+    con Kotlin invece di Groovy
+
+06/09/24
+- cerca di correggere tutti gli errori del PMD di gradle
