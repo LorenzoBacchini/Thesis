@@ -3,51 +3,60 @@
  */
 package it.unibo.artificial_vision_tracking;
 
-import org.bytedeco.artoolkitplus.Camera;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.opencv.opencv_java;
-import org.opencv.videoio.VideoCapture;
 
 import it.unibo.artificial_vision_tracking.aruco_markers.CameraCalibrator;
 import it.unibo.artificial_vision_tracking.aruco_markers.CameraPose;
-import it.unibo.artificial_vision_tracking.aruco_markers.GenerateMarkersSheet;
-import it.unibo.artificial_vision_tracking.robot.RobotScreenSaver;
 
-import org.opencv.objdetect.Dictionary;
 import org.opencv.objdetect.Objdetect;
 import org.opencv.core.Mat;
 
-import java.util.ArrayList;
 import java.util.List;
 
-
-public class App {
+/**
+ * Main class of the project.
+ */
+public final class App {
+    /**
+     * Loading the OpenCV native library
+     */
     static {
-        // Carica le librerie native di OpenCV
         Loader.load(opencv_java.class);
     }
-    public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException {
+
+    private App() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+    /**
+     * Main method.
+     * @param args
+     * @throws FrameGrabber.Exception
+     * @throws InterruptedException
+     */
+    public static void main(final String[] args) throws FrameGrabber.Exception, InterruptedException {
         final int markersX = 11; // Numero di marker sull'asse X
         final int markersY = 8; // Numero di marker sull'asse Y
         final float markerLength = 0.07f; // Lunghezza del marker (in metri)
         final String directoryPath = "..\\calibration_images\\";
-        final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
+        //final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
         final int selectedCamera = 1;
-        final int markerSheetMarkersX = 8; // Numero di marker sull'asse X
+        /*final int markerSheetMarkersX = 8; // Numero di marker sull'asse X
         final int markerSheetMarkersY = 10; // Numero di marker sull'asse Y
         final int markerSheetMarkerLength = 50; // Lunghezza del marker (in pixel)
-        final int markerSheetMarkerSeparation = 10; // Separazione tra i marker (in pixel)
+        final int markerSheetMarkerSeparation = 10; // Separazione tra i marker (in pixel)*/
         final int dictionaryType = Objdetect.DICT_4X4_100;
-        final String fileName = "markersSheet";
+        //final String fileName = "markersSheet";
 
-        //GenerateMarkersSheet gms = new GenerateMarkersSheet(markerSheetMarkersX, markerSheetMarkersY, markerSheetMarkerLength, markerSheetMarkerSeparation, dictionaryType, fileName);
+        /*GenerateMarkersSheet gms = new GenerateMarkersSheet(markerSheetMarkersX, markerSheetMarkersY, 
+            markerSheetMarkerLength, markerSheetMarkerSeparation, dictionaryType, fileName);*/
         //gms.generateMarkersSheet();
-        CameraCalibrator cc = new CameraCalibrator(markersX, markersY, directoryPath);
-        List<Mat> cameraParam = cc.calibration();
-        
-        
-        
+        final CameraCalibrator cc = new CameraCalibrator(markersX, markersY, directoryPath);
+        final List<Mat> cameraParam = cc.calibration();
+
+
+
         /*List<Mat> cameraParam = new ArrayList<>();
         Mat cameraMatrix = new Mat();
         Mat distCoeffs = new Mat();
@@ -74,9 +83,10 @@ public class App {
         cameraParam.add(cameraMatrix);
         cameraParam.add(distCoeffs);
         */
-        
-        
-        CameraPose cp = new CameraPose(cameraParam.get(0), cameraParam.get(1), markerLength, dictionaryType, selectedCamera);
+
+
+        final CameraPose cp = new CameraPose(cameraParam.get(0), cameraParam.get(1), 
+            markerLength, dictionaryType, selectedCamera);
         cp.calcPose();
 
         //Test to calculate the pose of a single frame

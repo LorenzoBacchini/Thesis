@@ -9,46 +9,65 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 
+import java.util.logging.Logger;
+
+/**
+ * Class to generate the Aruco markers sheet.
+ */
 public class GenerateMarkersSheet {
-    private static final int FULL_COLOR = 255;
+    private static final Logger LOGGER = Logger.getLogger(GenerateMarkersSheet.class.getName());
+    /**
+     * Constant to encode the value of "full color" in decimal.
+     */
+    public static final int FULL_COLOR = 255;
     private static final int IMAGE_MARGIN_SIZE = 10;
-    private static final int MARKER_BORDER_BITS= 1;
+    private static final int MARKER_BORDER_BITS = 1;
 
     // Horizontal markers
-    private int markersX;
+    private final int markersX;
     // Vertical markers
-    private int markersY;
+    private final int markersY;
     // Marker length in pixels
-    private float markerLength;
+    private final float markerLength;
     // Separation between markers in pixels
-    private float markerSeparation;
+    private final float markerSeparation;
     // Aruco dictionary
-    Dictionary dictionary;
+    private final Dictionary dictionary;
     // Output file name
-    private String fileName;
+    private final String fileName;
 
-    public GenerateMarkersSheet(int markersX, int markersY, float markerLength, float markerSeparation, int dictionaryType, String fileName) {
+    /**
+     * Constructor of the class.
+     * @param markersX
+     * @param markersY
+     * @param markerLength
+     * @param markerSeparation
+     * @param dictionaryType
+     * @param fileName
+     */
+    public GenerateMarkersSheet(final int markersX, final int markersY, final float markerLength, 
+        final float markerSeparation, final int dictionaryType, final String fileName) {
         this.markersX = markersX;
         this.markersY = markersY;
         this.markerLength = markerLength;
         this.markerSeparation = markerSeparation;
-        this.dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
+        this.dictionary = Objdetect.getPredefinedDictionary(dictionaryType);
         this.fileName = fileName;
     }
 
     /**
-     * Method to generate the Aruco markers sheet
+     * Method to generate the Aruco markers sheet.
      */
     public void generateMarkersSheet() {
-        GridBoard gridBoard = new GridBoard(new Size(markersX, markersY), markerLength, markerSeparation, dictionary);
+        final GridBoard gridBoard = new GridBoard(new Size(markersX, markersY), markerLength, markerSeparation, dictionary);
 
         // Calculate the total width and height of the image
-        int totalWidth = (int) (markersX * (markerLength + markerSeparation) - markerSeparation);
-        int totalHeight = (int) (markersY * (markerLength + markerSeparation) - markerSeparation);
-        Size imageSize = new Size(totalWidth, totalHeight);
+        final int totalWidth = (int) (markersX * (markerLength + markerSeparation) - markerSeparation);
+        final int totalHeight = (int) (markersY * (markerLength + markerSeparation) - markerSeparation);
+        final Size imageSize = new Size(totalWidth, totalHeight);
 
         // Create an image with a white background
-        Mat markerImage = new Mat(imageSize, CvType.CV_8UC1, new Scalar(FULL_COLOR));
+        final Mat markerImage = new Mat(imageSize, CvType.CV_8UC1, new Scalar(FULL_COLOR));
 
         // Drawing the markers grid
         gridBoard.generateImage(imageSize, markerImage, IMAGE_MARGIN_SIZE, MARKER_BORDER_BITS);
@@ -56,6 +75,6 @@ public class GenerateMarkersSheet {
         // Saving the image
         Imgcodecs.imwrite(fileName + ".png", markerImage);
 
-        System.out.println("Immagine dei marker Aruco generata e salvata come " + fileName + ".png");
+        LOGGER.info("markers sheet image created and saved as " + fileName + ".png");
     }
 }

@@ -4,32 +4,40 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.util.logging.Logger;
 
-public class ESP32Client extends WebSocketClient {
-
-    public ESP32Client(URI serverUri) {
+/**
+ * Class to manage the WebSocket client to communicate with the ESP32.
+ */
+public final class ESP32Client extends WebSocketClient {
+    private static final Logger LOGGER = Logger.getLogger(ESP32Client.class.getName());
+    /**
+     * Constructor of the class.
+     * @param serverUri
+     */
+    public ESP32Client(final URI serverUri) {
         super(serverUri);
     }
 
     @Override
-    public void onOpen(ServerHandshake handshakedata) {
-        System.out.println("Connesso al WebSocket Server");
+    public void onOpen(final ServerHandshake handshakedata) {
+        LOGGER.info("Connected to server: " + getURI());
     }
 
     @Override
-    public void onMessage(String message) {
-        System.out.println("Ricevuto dal server: " + message);
+    public void onMessage(final String message) {
+        LOGGER.info("Message received from server: " + message);
         // Gestione del messaggio ricevuto
     }
 
     @Override
-    public void onClose(int code, String reason, boolean remote) {
-        System.out.println("Connessione chiusa: " + reason);
+    public void onClose(final int code, final String reason, final boolean remote) {
+        LOGGER.info("Connection closed: " + reason);
     }
 
     @Override
-    public void onError(Exception ex) {
-        ex.printStackTrace();
+    public void onError(final Exception ex) {
+        LOGGER.warning(ex.getMessage());
     }
 
     /*
@@ -68,7 +76,7 @@ public class ESP32Client extends WebSocketClient {
             client.send(message);
             System.out.println("Messaggio inviato");
             Thread.sleep(5000);
-            
+
             // client.send("3, 3, 3, 3");
             // Thread.sleep(10000);
             // client.send("0, 0, 0, 0");
