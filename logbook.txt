@@ -423,4 +423,6 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
     con Kotlin invece di Groovy
 
 06/09/24
-- cerca di correggere tutti gli errori del PMD di gradle
+- correzione di tutti gli errori di checkStyle, pmd e cpd delle classi java, ora resta solo da ricreare il codice del robot screen saver riutilizzando
+    la funzione di cameraPose che ritorna rvec e tvec magari aggiungendo anche un valore di ritorno per indicare quali marker sono stati rilevati
+    (banalmente un array di id) in modo da snellire il codice vecchio di RobotScreenSaver e testarlo a dovere
