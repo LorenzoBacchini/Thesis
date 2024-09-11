@@ -426,3 +426,17 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
 - correzione di tutti gli errori di checkStyle, pmd e cpd delle classi java, ora resta solo da ricreare il codice del robot screen saver riutilizzando
     la funzione di cameraPose che ritorna rvec e tvec magari aggiungendo anche un valore di ritorno per indicare quali marker sono stati rilevati
     (banalmente un array di id) in modo da snellire il codice vecchio di RobotScreenSaver e testarlo a dovere
+
+07/0924
+- ho modifica il codice di cameraPose, più in specifico di calcSinglePose in modo da far ritornare anche la lista dei marker rilevati, inoltre ho 
+    riscritto da capo la classe RobotScreenSaver e ho iniziato ad effettuare i primi test non del tutto soddisfacenti
+
+09/09/24
+- ho continuato a modificare e migliorare il codice e sono arrivato ad un punto in cui dovrebbe andare ma le batterie del robot continuano a non
+    caricarsi, di conseguenza non posso andare oltre con i test
+
+10/09/24
+- lettura template per la stesura della tesi
+
+11/09/24
+- push delle modifiche alla classe del RobotScreenSaver
