@@ -44,7 +44,7 @@ public class CameraPose {
     private static final double PERSPECTIVE_REMOVE_IGNORED_MARGIN_PER_CELL = 0.1;
 
     //Costants for the camera
-    private static final int CAMERA_EXPORSURE = -5;
+    private static final int CAMERA_EXPORSURE = -6;
 
     //Costants for the calcPose methods
     private static final int CORNER_NUMBER = 4;
@@ -258,7 +258,7 @@ public class CameraPose {
      * the param capture is used to not reopen every time the Videocapture because
      * it cost a lot in terms of time and resources and slow down the pose process
      * @param cap VideoCapture passed as parameter if it is null then the method will open a new one
-     * @return Mat of tvec and tvec
+     * @return Mat of tvec, tvec and ids
      */
     public Mat[] calcSinglePose(final VideoCapture cap) {
         final VideoCapture capture;
@@ -283,7 +283,7 @@ public class CameraPose {
         //Getting the frame
         capture.read(frame);
         if (frame.empty()) {
-            return new Mat[] {new Mat(), new Mat()};
+            return new Mat[] {new Mat(), new Mat(), new Mat()};
         }
 
         //Resize the frame to speed up the marker detection
@@ -346,7 +346,6 @@ public class CameraPose {
                 cornerPoints.release();
             }
 
-            ids.release();
             corners.clear();
         }
 
@@ -365,7 +364,7 @@ public class CameraPose {
         }
         converterToMat.close();
 
-        return new Mat[] {tvecs, rvecs};
+        return new Mat[] {tvecs, rvecs, ids};
     }
 
 
