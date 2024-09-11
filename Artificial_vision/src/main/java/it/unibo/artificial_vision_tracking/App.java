@@ -102,7 +102,9 @@ public final class App {
         System.out.println("Avg frame time: " + (endTime - startTime) / i + "ms");
         */
 
-        //Test of the RobotScreenSaver
-        //RobotScreenSaver.screenSaver(cameraParam.get(0), cameraParam.get(1), markerLength, dictionary, selectedCamera);
+        //Test of RobotScreenSaver
+        /*RobotScreenSaver rss = new RobotScreenSaver("ws://10.0.0.5:81", List.of(2,3,4,5));
+        rss.screenSaver(cameraParam.get(0), cameraParam.get(1), markerLength, dictionaryType, selectedCamera);
+        */
     }
 }
