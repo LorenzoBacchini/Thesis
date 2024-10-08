@@ -261,7 +261,7 @@ fonti: http://andrewd.ces.clemson.edu/courses/cpsc482/papers/RMM18_speededAruco.
     in quanto utili soltanto ad avere un riscontro grafico di ciò che la camera vede, il sistema può velocizzarsi di molto
     lavorando anche a frame più alti (60fps) permettendo quindi una diminuzione del motion blur e in generale una 
     rilevazione e posa migliori
-- tieni a mente che per i tempi di rilevazione dei frame ci sono tre parametri principali:
+- tieni a mente che per i tempi di rilevazione dei frame ci sono quattro parametri principali:
     il tempo di rilevazione dei marker non cambia di molto con l'aumentare dei marker ma è già di per se abbastanza alto
      è possibile abbassare questo tempo grazie a risoluzioni più basse
 
@@ -333,7 +333,7 @@ https://docs.m5stack.com/en/uiflow/m5core/program       Link del tutorial per fl
   robot di conseguenza non so come controllarlo
 - adesso provo con il codice della repo: https://github.com/m5stack/Applications-LidarBot e arduino a lanciare e modificare
     tale codice per vedere se funziona
-- con arduino so avendo molti problemi, molto lento a verificare il codice e nonostante tutti i passaggi ancora non commpila
+- con arduino sto avendo molti problemi, molto lento a verificare il codice e nonostante tutti i passaggi ancora non commpila
     correttamente, sto provando quindi con platformIO in vscode
 - Innanzitutto ho importato tramite l'interfaccia di PlatformIO le librerie M5Unified e M5Dial (forse Dial non serviva), poi
     ho dovuto modificare tutti gli include di M5Stack con M5Unified perché ormai Stack è deprecato e quindi non è più incluso nelle
@@ -418,8 +418,8 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
 - refactoring del codice utile, ho fatto il refactoring di App, CameraPose, CameraCalibrator e GenerateMarkerSheet, ho rimosso tutti i magic numbers e
     aggiunto i commenti.
 - ho eliminato il codice python (ormai inutile dato che mi serviva solo a scopo di test prima di convertire il codice in java)
-- ho spostato tutte le cartelle utili dentro la cartella di python così da far funzionare il codice java ugualmente
-- ho ricreato il progetto seguendo le istruzioni di pianini e cioè utilizzando la guida fornita via mailche dice di creare il progetto gradle
+- ho spostato tutte le cartelle utili dentro la cartella di python ad una posizione più consona così da far funzionare il codice java ugualmente
+- ho ricreato il progetto seguendo le istruzioni di pianini e cioè utilizzando la guida fornita via mail che dice di creare il progetto gradle
     con Kotlin invece di Groovy
 
 06/09/24
@@ -428,7 +428,7 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
     (banalmente un array di id) in modo da snellire il codice vecchio di RobotScreenSaver e testarlo a dovere
 
 07/0924
-- ho modifica il codice di cameraPose, più in specifico di calcSinglePose in modo da far ritornare anche la lista dei marker rilevati, inoltre ho 
+- ho modificato il codice di cameraPose, più in specifico di calcSinglePose in modo da far ritornare anche la lista dei marker rilevati, inoltre ho 
     riscritto da capo la classe RobotScreenSaver e ho iniziato ad effettuare i primi test non del tutto soddisfacenti
 
 09/09/24
@@ -440,3 +440,46 @@ https://notisrac.github.io/FileToCArray/            Libreria per convertire imma
 
 11/09/24
 - push delle modifiche alla classe del RobotScreenSaver
+
+12/09/24
+- stamattina ho incontrato Gianluca a Cesena, ho parlato con gli altri e abbiamo avuto alcuni problemi a calibrare e far funzionare la loro webcam
+    in ogni caso non dovrebbe essere un grosso problema, una volta fatta funzionare dovremmo essere in grado di utilizzare il mio codice per far leggere
+    al sistema i marker sui robot così da comandarli senza troppi problemi. ora non resta da fare altro che iniziare a scrivere la tesi
+
+13/09/24
+- oggi ho dedicato l'intera giornata al ripasso di latex con l'aiuto di alcuni video di s.p.r.i.te
+
+14/09/24
+- oggi inizio a scrivere la tesi
+- tieni conto che dovrai consegnare la tesi entro metà novembre, di conseguanza devi stare concentrato e scrivere quasi tutti i giorni, 
+    inoltre ricordati di iniziare a creare una bibliografia come spiegato dalla repo della tesi e dal sito di pianini, mantieni un 
+    linguaggio formale senza lasciarti troppo andare a commenti personali e cerca di essere sempre sicuro di quello che dici
+- ho avuto alcuni problemi con texstudio, non riconosce i file .sty custom che sono al pari del file .tex, infatti in tutti gli \usepackage 
+    di main.tex dice che non li trovata
+    ho provato ad usare overleaf e funziona quindi adesso provo a risovere ma in caso passo a overleaf
+
+
+
+
+
+
+
+INIZIO STESURA TESI
+
+21/09/24
+inizio stesura background visione artificiale
+
+fonti: 
+visione artificiale pagina 3: https://books.google.it/books?hl=it&lr=&id=seAgiOfu2EIC&oi=fnd&pg=PR3&dq=opencv&ots=hWF75iiJSa&sig=dNDEKbiK4Fvu6KfIR9em75exKuY#v=onepage&q&f=false
+visione artificiale secondo microsoft: https://azure.microsoft.com/it-it/resources/cloud-computing-dictionary/what-is-computer-vision#identificazione-oggetti
+
+22/09/24
+backround visione artificiale terminato, inizio background marker fiduciari
+
+fonti: 
+storia della visione artificiale https://www.sama.com/blog/computer-vision-history-how-it-works
+
+08/10/24
+la stesura della tesi prosegue, ho terminato per il momento il background e stasera inizierò a scrivere analisi e possibilmente
+il design, oggi ho anche aggiunto una semplicissima gui che permette di personalizzare i parametri utili per utilizzare il 
+programma senza fare uso di vs code ma semplicemente lanciando il fat jar
