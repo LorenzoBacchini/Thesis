@@ -44,7 +44,7 @@ public class CameraPose {
     private static final double PERSPECTIVE_REMOVE_IGNORED_MARGIN_PER_CELL = 0.1;
 
     //Costants for the camera
-    private static final int CAMERA_EXPORSURE = -6;
+    private static final int CAMERA_EXPOSURE = -6;
 
     //Costants for the calcPose methods
     private static final int CORNER_NUMBER = 4;
@@ -204,7 +204,7 @@ public class CameraPose {
         }
 
         //Setting the camera exposure to reduce the motion blur
-        capture.set(Videoio.CAP_PROP_EXPOSURE, CAMERA_EXPORSURE);
+        capture.set(Videoio.CAP_PROP_EXPOSURE, CAMERA_EXPOSURE);
 
         //Getting the frame rate
         LOGGER.info("Frame rate: " + capture.get(Videoio.CAP_PROP_FPS));
