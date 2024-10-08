@@ -9,6 +9,7 @@ import org.bytedeco.opencv.opencv_java;
 
 import it.unibo.artificial_vision_tracking.aruco_markers.CameraCalibrator;
 import it.unibo.artificial_vision_tracking.aruco_markers.CameraPose;
+import it.unibo.artificial_vision_tracking.graphics.InputParameters;
 
 import org.opencv.objdetect.Objdetect;
 import org.opencv.core.Mat;
@@ -36,75 +37,79 @@ public final class App {
      * @throws InterruptedException
      */
     public static void main(final String[] args) throws FrameGrabber.Exception, InterruptedException {
-        final int markersX = 11; // Numero di marker sull'asse X
-        final int markersY = 8; // Numero di marker sull'asse Y
-        final float markerLength = 0.07f; // Lunghezza del marker (in metri)
-        final String directoryPath = "..\\calibration_images\\";
-        //final Dictionary dictionary = Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_100);
-        final int selectedCamera = 1;
-        /*final int markerSheetMarkersX = 8; // Numero di marker sull'asse X
-        final int markerSheetMarkersY = 10; // Numero di marker sull'asse Y
-        final int markerSheetMarkerLength = 50; // Lunghezza del marker (in pixel)
-        final int markerSheetMarkerSeparation = 10; // Separazione tra i marker (in pixel)*/
-        final int dictionaryType = Objdetect.DICT_4X4_100;
-        //final String fileName = "markersSheet";
+        // Let the user set the application parameters
+        final InputParameters ip = new InputParameters();
+        ip.createWindow();
 
-        /*GenerateMarkersSheet gms = new GenerateMarkersSheet(markerSheetMarkersX, markerSheetMarkersY, 
-            markerSheetMarkerLength, markerSheetMarkerSeparation, dictionaryType, fileName);*/
-        //gms.generateMarkersSheet();
-        final CameraCalibrator cc = new CameraCalibrator(markersX, markersY, directoryPath);
-        final List<Mat> cameraParam = cc.calibration();
+        // Wait for the user to set the parameters
+        final int squaresX = ip.getSquaresX();
+        final int squaresY = ip.getSquaresY();
+        final float markerLength = ip.getMarkerLength();
+        final String directoryPath = ip.getDirectoryPath();
+        final int selectedCamera = ip.getCameraIndex();
+        final int dictionaryType = convertDictionary(ip.getDictionaryType());
+        // Close the input parameters window
+        ip.close();
 
 
-
-        /*List<Mat> cameraParam = new ArrayList<>();
-        Mat cameraMatrix = new Mat();
-        Mat distCoeffs = new Mat();
-
-        cameraMatrix = new Mat(3, 3, org.opencv.core.CvType.CV_64F);
-        double[] data = {
-            1340.821804232236, 0, 945.5377637384079,
-            0, 1339.251046705548, 581.4177912549047,
-            0, 0, 1
-        };
-        cameraMatrix.put(0, 0, data);
-
-        distCoeffs = new Mat(1, 5, org.opencv.core.CvType.CV_64F);
-        double[] data2 = {
-            -0.3898373600798533,
-            0.08115247413122996,
-            -1.965974706520358e-05,
-            -0.0006330161088470909,
-            0.1140937797457088
-        };
-
-        distCoeffs.put(0, 0, data2);
-
-        cameraParam.add(cameraMatrix);
-        cameraParam.add(distCoeffs);
+        //Default values for calibration
+        /*final int squaresX = 11; // number of squares on the X axis of the calibration chessboard
+        final int squaresY = 8; // number of squares on the Y axis of the calibration chessboard
+        final float markerLength = 0.07f; // marker side length (in meters)
+        final String directoryPath = "..\\calibration_images\\"; // path to the directory containing the camera calibration images
+        final int dictionaryType = Objdetect.DICT_4X4_100; // type of dictionary employed for the markers
+        final int selectedCamera = 1;   // camera index to be used for the calibration (starting from 0)
+        */
+        //Default values to generate the markers sheet
+        /*final int markerSheetMarkersX = 8; // number of markers on the X axis
+        final int markerSheetMarkersY = 10; // number of markers on the Y axis
+        final int markerSheetMarkerLength = 50; // Marker side length (in pixel)
+        final int markerSheetMarkerSeparation = 10; // Separation between markers (in pixel)
+        final String fileName = "markersSheet"; // Name of the file containing the markers sheet
+        GenerateMarkersSheet gms = new GenerateMarkersSheet(markerSheetMarkersX, markerSheetMarkersY, 
+            markerSheetMarkerLength, markerSheetMarkerSeparation, dictionaryType, fileName);
+        gms.generateMarkersSheet();
         */
 
 
+        //Camera calibration
+        final CameraCalibrator cc = new CameraCalibrator(squaresX, squaresY, directoryPath);
+        final List<Mat> cameraParam = cc.calibration();
+
+
+        //Camera pose estimation
         final CameraPose cp = new CameraPose(cameraParam.get(0), cameraParam.get(1), 
             markerLength, dictionaryType, selectedCamera);
         cp.calcPose();
 
-        //Test to calculate the pose of a single frame
-        /*VideoCapture capture = cp.getCamera();
-        long startTime = System.currentTimeMillis(); 
-        int i = 0;
-        //A FRAME LIMITER MAY BE REQUIRED (not sure about this)
-        while(i < 100){
-            System.out.println("\n" + cp.calcSinglePose(capture)[0].dump() + "\n");
-            i++;
-        }
-        long endTime = System.currentTimeMillis();
-        System.out.println("Avg frame time: " + (endTime - startTime) / i + "ms");
-        */
 
         //Test of RobotScreenSaver
         /*RobotScreenSaver rss = new RobotScreenSaver("ws://10.0.0.5:81", List.of(2,3,4,5));
         rss.screenSaver(cameraParam.get(0), cameraParam.get(1), markerLength, dictionaryType, selectedCamera);
         */
+    }
+
+    /**
+     * Convert the dictionary type from string to integer.
+     * @param dictionaryType
+     * @return the integer value of the dictionary type
+     */
+    private static int convertDictionary(final String dictionaryType) {
+        switch (dictionaryType) {
+            case "DICT_4X4_100":
+                return Objdetect.DICT_4X4_100;
+            case "DICT_4X4_1000":
+                return Objdetect.DICT_4X4_1000;
+            case "DICT_5X5_100":
+                return Objdetect.DICT_5X5_100;
+            case "DICT_5X5_1000":
+                return Objdetect.DICT_5X5_1000;
+            case "DICT_6X6_100":
+                return Objdetect.DICT_6X6_100;
+            case "DICT_6X6_1000":
+                return Objdetect.DICT_6X6_1000;
+            default:
+                return Objdetect.DICT_4X4_100;
+        }
     }
 }
