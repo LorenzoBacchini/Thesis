@@ -409,16 +409,12 @@ public class CameraPose {
 
         final Mat frame = new Mat();
 
-        //Variable to check if the marker zero is lost
-        boolean lose = false;
-
         //Variables to calculate the time of the detection and pose estimation
         long totalTimeDetection = 0;
         long totalTimePose = 0;
         long totalGetFrameTime = 0;
         long startGetFrameTime;
         startTime = System.currentTimeMillis();
-        long loseTime = System.currentTimeMillis();
         long startWhile;
         while (running) {
             startWhile = System.currentTimeMillis();
@@ -461,19 +457,6 @@ public class CameraPose {
                 final int[] idArray = new int[(int) ids.total()];
                 ids.get(0, 0, idArray);
 
-                //Check if the zero marker is lost
-                if (!containsZeroMarker(idArray)) {
-                    if (!lose) {
-                        loseTime = System.currentTimeMillis();
-                        lose = true;
-                    }
-                } else {
-                    if (lose) {
-                        lose = false;
-                        LOGGER.info("Lose: " + (System.currentTimeMillis() - loseTime));
-                    }
-                }
-
                 //Starting the pose estimation
                 final long startPose = System.currentTimeMillis();
                 for (int i = 0; i < idArray.length; i++) {
@@ -510,12 +493,6 @@ public class CameraPose {
                 Objdetect.drawDetectedMarkers(frame, corners, ids);
                 ids.release();
                 corners.clear();
-            } else {
-                //Also if ids is empty I need to update the lose variable
-                if (!lose) {
-                    loseTime = System.currentTimeMillis();
-                    lose = true;
-                }
             }
             totalFrames++;
 
@@ -662,19 +639,5 @@ public class CameraPose {
                 corner.put(0, i, data);
             }
         }
-    }
-
-    /**
-     * Method to check if the marker array contains the zero marker.
-     * @param idsArray
-     * @return boolean value, true if the zero marker is present, false otherwise
-     */
-    private static boolean containsZeroMarker(final int[] idsArray) {
-        for (final int i : idsArray) {
-            if (i == 0) {
-                return true;
-            }
-        }
-        return false;
     }
 }
