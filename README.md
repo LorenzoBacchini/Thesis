@@ -10,7 +10,7 @@ there you can also find some explanation about architectural and implementation 
 > [!WARNING]
 > If the program doesn't seem to work or doesn't show anything, change the selectedCamera variable to use the right index camera.
 ### Marker detection
-Use the released app V1.0.</br>
+Use the released app V1.0.
 
 ### Calibration and pose
 To perform camera calibration and see the result on the camera pose you can use the second release (V2.0) but you need to:
@@ -23,7 +23,8 @@ To perform camera calibration and see the result on the camera pose you can use 
 You can print the images in the [aruco_markers](aruco_markers) folder to see the result of the calibration and pose.
 
 > [!WARNING]
-> Make sure there is enough light in the scene otherwise the markers may not be detected. </br>
+> Make sure there is enough light in the scene otherwise the markers may not be detected.
+> 
 > If you want to be able to use this program in low light conditions you have to modify the CAMERA_EXPOSURE constant at the top of the CameraPose class, increasing the value will allow you to work in low light conditions but will also increase the motion blur effect, while lowering it will have the opposite effect, keep the value between -5 and -7 for correct system operation.
 
 > [!NOTE]
@@ -34,6 +35,8 @@ You can print the images in the [aruco_markers](aruco_markers) folder to see the
 In the robot folder there are three subfolder, one for the code of the basic LidarBot (LidarBot), one for the custom code of the LidarBot2 (Lidarbot2) that receive command only through http request, and one for the remote controller of the LidarBot2 (Remote).
 
 > [!IMPORTANT]
-> The code in the Robot folder is not tested so LidarBot2 code may not work properly and Remote only work with a stock version of the LidarBot2 code, not with the code in the LidarBot2 folder. </br>
-> The code in LidarBot is made for the first version of the lidarBot so may not work with LidarBot2. </br>
+> The code in the Robot folder is not tested so LidarBot2 code may not work properly and Remote only work with a stock version of the LidarBot2 code, not with the code in the LidarBot2 folder.
+> 
+> The code in LidarBot is made for the first version of the lidarBot so may not work with LidarBot2.
+> 
 > If you want to make any change you can use vscode with PlatformIO extension to open the three subfolder.
