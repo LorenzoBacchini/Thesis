@@ -535,19 +535,23 @@ public class CameraPose {
         converterToMat.close();
     }
 
+    /**
+     * Method to prepare the matrix for the pose estimation by
+     * converting the Mat of corners to a MatOfPoint2f of corners.
+     * !IMPORTANT
+     * Note that the creation of a MatOfPoint2f directly from a Mat is not possible
+     * so we need to create a MatOfPoint2f from an array of Point.
+     * !IMPORTANT
+     * @param corners
+     * @param i
+     * @param cornerPoints
+     */
     private void prepareMatrixForPoseEstimation(final List<Mat> corners, final int i, final MatOfPoint2f cornerPoints) {
         final Mat cornerMat = corners.get(i).clone();
-        final List<double[]> cornerData = new ArrayList<>();
-        //Extract the four corner points of the marker
-        for (int h = 0; h < CORNER_NUMBER; h++) {
-            cornerData.add(cornerMat.get(0, h));
-        }
-
-        //Save the corner points of the marker in an array
         final Point[] cornerPointsArray = new Point[CORNER_NUMBER];
-        for (int j = 0; j < cornerData.size(); j++) {
-            final double[] data = cornerData.get(j);
-            cornerPointsArray[j] = new Point(data[0], data[1]);
+        //Extracting the four corner points of the marker and saving them in an array
+        for (int h = 0; h < CORNER_NUMBER; h++) {
+            cornerPointsArray[h] = new Point(cornerMat.get(0, h)[0], cornerMat.get(0, h)[1]);
         }
 
         //Create MatOfPoint2f mat with the corner points of the marker
