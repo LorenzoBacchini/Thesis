@@ -398,10 +398,17 @@ public class CameraPose {
 
         //Create the object points of the marker
         final MatOfPoint3f objPoints = new MatOfPoint3f(
+            // objPoint to set the marker reference system on its top left corner
             new Point3(0, 0, 0),
             new Point3(markerLength, 0, 0),
             new Point3(markerLength, markerLength, 0),
             new Point3(0, markerLength, 0)
+            /* objPoint to set the marker reference system on its center
+            new Point3(-markerLength/2, -markerLength/2, 0),
+            new Point3(markerLength/2, -markerLength/2, 0),
+            new Point3(markerLength/2, markerLength/2, 0),
+            new Point3(-markerLength/2, markerLength/2, 0)
+            */
         );
 
         //Canvas to display the webcam feed
