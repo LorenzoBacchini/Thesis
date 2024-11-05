@@ -1,4 +1,6 @@
 # Bachelor's degree project
+[![DOI](https://zenodo.org/badge/820957413.svg)](https://doi.org/10.5281/zenodo.14039135)
+
 ## Description
 This project aims to create a Java application to detect and follow some ArUco markers attached to small robots, in order to give them 
 orders to make them move in the field of view of a webcam positioned above them, which will then interpret the markers and calculate the next move.
